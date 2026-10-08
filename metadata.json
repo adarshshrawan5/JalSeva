@@ -1,0 +1,8 @@
+{
+  "name": "Aqua_Connect - MBMC Digital Water Supply Portal",
+  "description": "Mira-Bhayandar Municipal Corporation digital water supply management portal connecting citizens with real-time schedules, emergency tanker booking, complaint redressal, and municipal administration.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
