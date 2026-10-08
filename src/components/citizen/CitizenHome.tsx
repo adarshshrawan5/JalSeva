@@ -3,7 +3,6 @@ import { ActiveTab } from '../common/Navbar';
 import { OutageAlert, SystemStats } from '../../types';
 import {
   Calendar,
-  Truck,
   AlertCircle,
   Search,
   Droplets,
@@ -15,9 +14,10 @@ import {
   ShieldAlert,
   PhoneCall,
   HeartHandshake,
-  Sparkles,
+  Building2,
   MapPin,
   Check,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface CitizenHomeProps {
@@ -39,7 +39,6 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
     <div className="space-y-12 pb-12">
       {/* Hero Section with JalSeva Branding */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-sky-800 to-indigo-950 text-white p-8 sm:p-12 shadow-2xl">
-        {/* Decorative background glow & shapes */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#fd7e14]/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/25 rounded-full blur-3xl pointer-events-none" />
 
@@ -61,7 +60,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
           </p>
 
           <p className="text-sm sm:text-lg text-sky-100 font-medium leading-relaxed">
-            Digital Water Supply Management Portal bridging 809,378 citizens with Mira-Bhayandar Municipal Corporation (MBMC). Check daily supply timings, book emergency water tankers for today or tomorrow with live GPS tracking, and resolve pipeline issues swiftly.
+            Digital Water Supply Management Portal bridging 809,378 citizens with Mira-Bhayandar Municipal Corporation (MBMC). Check daily supply timings, view unplanned outage alerts, and report pipeline leaks directly to municipal engineers.
           </p>
 
           {/* Value Props Pills */}
@@ -76,7 +75,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </span>
             <span className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-sm">
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              Strict Today/Tomorrow Booking
+              Under 48hr Grievance Redressal
             </span>
           </div>
 
@@ -91,19 +90,19 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('tanker-book')}
+              onClick={() => setActiveTab('complaint-file')}
               className="px-6 py-3.5 bg-gradient-to-r from-[#ea580c] to-[#fd7e14] hover:from-[#c2410c] hover:to-[#ea580c] text-white rounded-2xl font-bold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2"
             >
-              <Truck className="w-4 h-4" />
-              <span>Book Emergency Tanker</span>
+              <AlertCircle className="w-4 h-4 text-white" />
+              <span>Report Leak / Grievance</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('complaint-file')}
+              onClick={() => setActiveTab('tracker')}
               className="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-bold text-sm backdrop-blur-md transition flex items-center gap-2"
             >
-              <AlertCircle className="w-4 h-4 text-rose-300" />
-              <span>Report Leak / Grievance</span>
+              <Search className="w-4 h-4 text-sky-200" />
+              <span>Track Docket Status</span>
             </button>
           </div>
         </div>
@@ -114,13 +113,13 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <span>Citizen Core Services</span>
+              <span>Citizen Core Modules</span>
               <span className="text-xs font-bold text-[#ea580c] dark:text-amber-400 bg-orange-100 dark:bg-orange-950/50 px-2.5 py-0.5 rounded-full">
                 जलसेवा
               </span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Access official municipal water modules in under 3 clicks
+              Access official municipal water services in under 3 clicks
             </p>
           </div>
         </div>
@@ -147,31 +146,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 2: Book Tanker */}
-          <div
-            onClick={() => setActiveTab('tanker-book')}
-            className="group cursor-pointer bg-gradient-to-b from-orange-50/50 to-white dark:from-orange-950/20 dark:to-slate-900 p-6 rounded-2xl border border-orange-200 dark:border-orange-800/60 shadow-sm hover:shadow-xl hover:border-[#fd7e14] transition-all transform hover:-translate-y-1 relative overflow-hidden"
-          >
-            <span className="absolute top-3 right-3 text-[10px] font-bold bg-[#ea580c] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Today / Tomorrow
-            </span>
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#ea580c] dark:text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Truck className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
-              <span>Emergency Tanker</span>
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#ea580c] transition group-hover:translate-x-1" />
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Request 5,000L to 15,000L potable water tankers with automated nearest depot assignment and route ETA.
-            </p>
-            <div className="mt-4 pt-3 border-t border-orange-100 dark:border-orange-900/40 text-[11px] font-bold text-[#ea580c] dark:text-amber-400 flex items-center gap-1">
-              <span>Live GPS & 9 Time Slots</span>
-              <span>→</span>
-            </div>
-          </div>
-
-          {/* Card 3: Report Complaint */}
+          {/* Card 2: Report Grievance */}
           <div
             onClick={() => setActiveTab('complaint-file')}
             className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-rose-500 dark:hover:border-rose-500 transition-all transform hover:-translate-y-1"
@@ -184,7 +159,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-600 transition group-hover:translate-x-1" />
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Report contaminated water, pipeline leaks, low pressure, or billing errors with photo upload & direct worker dispatch.
+              Report contaminated water, pipeline leaks, low pressure, or meter errors with photo upload & direct worker dispatch.
             </p>
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
               <span>48h SLA Resolution</span>
@@ -192,7 +167,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 4: Track Status */}
+          {/* Card 3: Track Status */}
           <div
             onClick={() => setActiveTab('tracker')}
             className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-purple-500 dark:hover:border-purple-500 transition-all transform hover:-translate-y-1"
@@ -201,14 +176,35 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
               <Search className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
-              <span>Track Live Status</span>
+              <span>Track Redressal</span>
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition group-hover:translate-x-1" />
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Real-time visual timeline for your complaints and live GPS moving truck tracking for your booked tankers.
+              Real-time visual journey for your complaints from Registration → Plumber Assigned → In Progress → Tested & Resolved.
             </p>
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
-              <span>Search by ID / Mobile</span>
+              <span>Search by Docket / Phone</span>
+              <span>→</span>
+            </div>
+          </div>
+
+          {/* Card 4: Ward Directory */}
+          <div
+            onClick={() => setActiveTab('support')}
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-emerald-500 dark:hover:border-emerald-500 transition-all transform hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
+              <span>Ward Directory</span>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition group-hover:translate-x-1" />
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Contact executive water engineers, view zonal ward office addresses, FAQ guides, and 24x7 control room direct hotlines.
+            </p>
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <span>All 4 Ward Offices</span>
               <span>→</span>
             </div>
           </div>
@@ -244,19 +240,19 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             <p className="text-[11px] text-slate-500 mt-1">Surya Dam Gravity & MIDC Jambhul Line</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50">
-            <div className="flex items-center gap-2 text-[#ea580c] dark:text-amber-400 mb-2">
-              <Truck className="w-5 h-5" />
-              <span className="text-xs font-semibold">Tankers Dispatched</span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {stats.tankersDispatchedToday} <span className="text-sm font-medium text-slate-500">Trips</span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">Average arrival within 22 minutes</p>
-          </div>
-
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50">
             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-2">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-xs font-semibold">Chlorination Standard</span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              100% <span className="text-sm font-medium text-slate-500">Tested</span>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-1">Certified Potable Drinking Water</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
               <Activity className="w-5 h-5" />
               <span className="text-xs font-semibold">Active Grievances</span>
             </div>
@@ -299,7 +295,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
                       {alert.type}
                     </span>
                     <span className="text-xs text-slate-500">
@@ -354,12 +350,12 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
           <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 flex items-center justify-center">
             <MapPin className="w-5 h-5" />
           </div>
-          <h4 className="font-bold text-slate-900 dark:text-white">4 Water Depots</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white">Water Reservoirs & Treatment</h4>
           <p className="text-xs text-slate-500">
-            MBMC maintains 4 high-capacity depots with 65 municipal tankers ready for instant dispatch.
+            Surya Project gravity conduit, Jambhul WTP, Pali Reservoir, and Morva elevated master balancing tanks.
           </p>
           <div className="pt-2 text-xs text-blue-600 dark:text-blue-400 font-bold">
-            <span>Kharigaon • Mira Rd Sec 4 • Subhash Nagar • Uttan</span>
+            <span>Primary Feeder Pressure: 7.5 Bar</span>
           </div>
         </div>
 
@@ -369,7 +365,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
           </div>
           <h4 className="font-bold text-slate-900 dark:text-white">Citizen Guarantee</h4>
           <p className="text-xs text-slate-500">
-            Strict resolution timeframe: Pipeline leaks inspected within 2 hours; tankers delivered within 2 hours.
+            Strict resolution timeframe: Pipeline leaks inspected within 2 hours. Maximum redressal turnaround: 48 hours.
           </p>
           <div className="pt-2 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
             <span>MBMC Public Service Charter 2026</span>

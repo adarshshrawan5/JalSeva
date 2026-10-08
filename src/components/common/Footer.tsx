@@ -42,14 +42,6 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenAdmin }) => 
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab('tanker-book')}
-                  className="hover:text-[#fd7e14] transition flex items-center gap-1.5"
-                >
-                  <span>→</span> Emergency Water Tanker (Today/Tomorrow)
-                </button>
-              </li>
-              <li>
-                <button
                   onClick={() => setActiveTab('complaint-file')}
                   className="hover:text-rose-400 transition flex items-center gap-1.5"
                 >

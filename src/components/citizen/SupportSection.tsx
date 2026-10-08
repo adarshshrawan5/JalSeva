@@ -23,12 +23,8 @@ export const SupportSection: React.FC = () => {
 
   const faqs = [
     {
-      q: 'Why does the tanker booking system restrict dates to Today or Tomorrow only?',
-      a: 'To guarantee equitable distribution and prevent unauthorized hoarding of emergency water supplies, MBMC algorithms allocate tanker fleets dynamically based on verified immediate demand across Mira-Bhayandar.',
-    },
-    {
       q: 'How does live location detection help in water management?',
-      a: 'Clicking "Detect My Location" auto-identifies your municipal zone and computes the shortest road distance (via Haversine formula) to the nearest MBMC water depot, reducing transit time and estimating arrival within 15-25 minutes.',
+      a: 'Clicking "Detect My Location" uses your GPS coordinates to automatically determine your municipal water supply zone, ward number, and local supply schedule across Mira-Bhayandar.',
     },
     {
       q: 'What is the standard resolution turnaround for water complaints?',
@@ -36,11 +32,15 @@ export const SupportSection: React.FC = () => {
     },
     {
       q: 'Where does Mira-Bhayandar receive its municipal drinking water?',
-      a: 'MBMC receives approximately 142.5 MLD of treated water sourced from the Surya Dam gravity project and the MIDC Jambhul water treatment facility.',
+      a: 'MBMC receives approximately 142.5 MLD of treated potable water sourced from the Surya Dam gravity project and the MIDC Jambhul water treatment facility.',
     },
     {
-      q: 'Can I track the water tanker driver in real-time?',
-      a: 'Yes! Once approved and dispatched, open "Track Live Status" to monitor the moving tanker icon on the map, along with driver name, vehicle registration number, and direct phone link.',
+      q: 'Can I track my water complaint status in real-time?',
+      a: 'Yes! Open "Track Redressal" using your Docket ID (e.g. CMP2026100701) or registered 10-digit mobile number to see the visual 4-step progress: Registered → Plumber Assigned → Work In Progress → Resolved.',
+    },
+    {
+      q: 'What should I do during an unexpected water supply outage?',
+      a: 'Check the Live Outage Ticker at the top of the portal for emergency maintenance announcements. MBMC field teams mobilize emergency municipal bypass valves during scheduled pipeline works.',
     },
   ];
 

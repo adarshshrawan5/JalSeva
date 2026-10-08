@@ -3,7 +3,6 @@ import { ThemeToggle } from './ThemeToggle';
 import { JalSevaLogo } from './JalSevaLogo';
 import {
   Calendar,
-  Truck,
   AlertCircle,
   Search,
   Building2,
@@ -12,14 +11,12 @@ import {
   X,
   PhoneCall,
   Home,
-  User,
-  ArrowRight,
+  Wrench,
 } from 'lucide-react';
 
 export type ActiveTab =
   | 'home'
   | 'schedule'
-  | 'tanker-book'
   | 'complaint-file'
   | 'tracker'
   | 'support';
@@ -28,29 +25,28 @@ interface NavbarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   onOpenLanding: () => void;
-  onOpenDriver: () => void;
+  onOpenStaff: () => void;
   onOpenAdmin: () => void;
   isAdminLoggedIn?: boolean;
-  isDriverLoggedIn?: boolean;
+  isStaffLoggedIn?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   onOpenLanding,
-  onOpenDriver,
+  onOpenStaff,
   onOpenAdmin,
   isAdminLoggedIn,
-  isDriverLoggedIn,
+  isStaffLoggedIn,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { id: 'home' as ActiveTab, label: 'Portal Home', icon: Home },
     { id: 'schedule' as ActiveTab, label: 'Schedule & Outages', icon: Calendar },
-    { id: 'tanker-book' as ActiveTab, label: 'Book Tanker', icon: Truck, highlight: true },
-    { id: 'complaint-file' as ActiveTab, label: 'Report Grievance', icon: AlertCircle },
-    { id: 'tracker' as ActiveTab, label: 'Track Live Status', icon: Search },
+    { id: 'complaint-file' as ActiveTab, label: 'Report Grievance', icon: AlertCircle, highlight: true },
+    { id: 'tracker' as ActiveTab, label: 'Track Redressal', icon: Search },
     { id: 'support' as ActiveTab, label: 'Ward Directory', icon: Building2 },
   ];
 
@@ -68,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -76,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                       : item.highlight
@@ -111,18 +107,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>1800-22-2026</span>
             </a>
 
-            {/* Driver Portal Button */}
+            {/* Field Staff Portal Button */}
             <button
-              onClick={onOpenDriver}
+              onClick={onOpenStaff}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm border ${
-                isDriverLoggedIn
+                isStaffLoggedIn
                   ? 'bg-[#ea580c] hover:bg-[#c2410c] text-white border-orange-500'
                   : 'bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/50 text-[#ea580c] dark:text-amber-300 border-orange-200 dark:border-orange-800'
               }`}
-              title="Login as Municipal Tanker Driver"
+              title="Login as Municipal Field Plumber / Inspector"
             >
-              <Truck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Driver Portal</span>
+              <Wrench className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Field Staff</span>
             </button>
 
             {/* Admin Portal Gateway Button */}
@@ -198,13 +194,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
             <button
               onClick={() => {
-                onOpenDriver();
+                onOpenStaff();
                 setMobileMenuOpen(false);
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-100 dark:bg-orange-950 text-[#ea580c] dark:text-amber-300 font-bold text-xs"
             >
-              <Truck className="w-4 h-4" />
-              <span>Login as Tanker Driver</span>
+              <Wrench className="w-4 h-4" />
+              <span>Login as Field Staff / Plumber</span>
             </button>
 
             <button

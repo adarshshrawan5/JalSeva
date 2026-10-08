@@ -22,7 +22,6 @@ export type AdminTab =
   | 'broadcast'
   | 'schedule'
   | 'complaints'
-  | 'tankers'
   | 'analytics'
   | 'staff';
 
@@ -48,9 +47,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'broadcast' as AdminTab, label: 'Broadcast & Outages', icon: Radio },
     { id: 'schedule' as AdminTab, label: 'Schedule Manager', icon: Calendar },
     { id: 'complaints' as AdminTab, label: 'Complaints Desk', icon: CheckCircle2 },
-    { id: 'tankers' as AdminTab, label: 'Tanker Dispatch', icon: Truck },
     { id: 'analytics' as AdminTab, label: 'Reports & Analytics', icon: BarChart3 },
-    { id: 'staff' as AdminTab, label: 'Staff & Drivers', icon: Users },
+    { id: 'staff' as AdminTab, label: 'Field Personnel', icon: Users },
   ];
 
   const handleResetData = () => {

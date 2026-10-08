@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { JalSevaLogo } from './JalSevaLogo';
-import { ThemeToggle } from './ThemeToggle';
 import { OutageAlert, SystemStats, WaterZone } from '../../types';
-import { MBMC_ZONES, MBMC_AREAS } from '../../data/mbmcData';
 import {
   Users,
-  Truck,
+  Wrench,
   Shield,
   ArrowRight,
   PhoneCall,
@@ -19,16 +17,16 @@ import {
   Sparkles,
   HeartHandshake,
   MapPin,
-  ChevronRight,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface MainLandingPageProps {
   stats: SystemStats;
   alerts: OutageAlert[];
   zones: WaterZone[];
-  onSelectRole: (role: 'citizen' | 'driver' | 'admin') => void;
+  onSelectRole: (role: 'citizen' | 'staff' | 'admin') => void;
   onOpenQuickSchedule: () => void;
-  onOpenQuickTanker: () => void;
   onOpenQuickComplaint: () => void;
   onSelectAlert: (alert: OutageAlert) => void;
 }
@@ -39,7 +37,6 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
   zones,
   onSelectRole,
   onOpenQuickSchedule,
-  onOpenQuickTanker,
   onOpenQuickComplaint,
   onSelectAlert,
 }) => {
@@ -72,7 +69,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           </p>
 
           <p className="text-sm sm:text-lg text-sky-100 max-w-2xl leading-relaxed">
-            Welcome to the official municipal water management portal of Mira-Bhayandar Municipal Corporation (MBMC). Choose your role below to access your dedicated dashboard.
+            Welcome to the official municipal water management portal of Mira-Bhayandar Municipal Corporation (MBMC). Check water supply schedules, report pipeline leaks or contaminated water, and track grievance resolution.
           </p>
 
           {/* Quick Access Pills */}
@@ -81,16 +78,35 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               ✓ 809,378 Citizens Served
             </span>
             <span className="bg-white/10 px-3 py-1 rounded-xl backdrop-blur-sm">
-              ✓ Strict Today/Tomorrow Tankers
+              ✓ 142.5 MLD Potable Water Daily
             </span>
             <span className="bg-white/10 px-3 py-1 rounded-xl backdrop-blur-sm">
               ✓ 4 Zones & 79 Localities
             </span>
           </div>
+
+          {/* Primary Quick Actions */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              onClick={onOpenQuickSchedule}
+              className="px-6 py-3.5 bg-white text-blue-700 hover:bg-sky-50 rounded-2xl font-bold text-sm shadow-xl hover:shadow-2xl transition transform hover:-translate-y-0.5 flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <span>Check Area Water Timetable</span>
+            </button>
+
+            <button
+              onClick={onOpenQuickComplaint}
+              className="px-6 py-3.5 bg-gradient-to-r from-[#ea580c] to-[#fd7e14] hover:from-[#c2410c] hover:to-[#ea580c] text-white rounded-2xl font-bold text-sm shadow-xl transition transform hover:-translate-y-0.5 flex items-center gap-2"
+            >
+              <AlertCircle className="w-4 h-4" />
+              <span>Report Leak / Water Grievance</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* 3 DEDICATED ROLE PORTAL LOGIN CARDS (CITIZEN, DRIVER, ADMIN) */}
+      {/* 3 DEDICATED ROLE PORTAL LOGIN CARDS (CITIZEN, FIELD STAFF, ADMIN) */}
       <section className="space-y-4">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-[#ea580c] dark:text-amber-400 bg-orange-100 dark:bg-orange-950/60 px-3 py-1 rounded-full">
@@ -100,7 +116,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             Log In to Your JalSeva Dashboard
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Dedicated interfaces tailored for residents, municipal tanker drivers, and administrative engineers.
+            Dedicated interfaces tailored for residents, municipal field staff, and administrative engineers.
           </p>
         </div>
 
@@ -125,7 +141,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Check area water supply schedules, book emergency tankers strictly for Today or Tomorrow, report pipeline leaks, and track redressal live.
+                Check area water supply schedules, view unexpected outage alerts, report pipeline leaks or dirty water with photo upload, and track redressal live.
               </p>
 
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
@@ -135,11 +151,11 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-blue-500">✓</span>
-                  <span>5,000L - 15,000L Emergency Tankers</span>
+                  <span>10 Issue Categories with Photo Attachments</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-blue-500">✓</span>
-                  <span>GPS Auto-Locate & Live Moving Tanker Map</span>
+                  <span>GPS Auto-Locate & Visual Redressal Journey</span>
                 </div>
               </div>
             </div>
@@ -155,41 +171,41 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             </div>
           </div>
 
-          {/* PORTAL 2: DRIVER */}
+          {/* PORTAL 2: FIELD STAFF */}
           <div
-            onClick={() => onSelectRole('driver')}
+            onClick={() => onSelectRole('staff')}
             className="group cursor-pointer bg-gradient-to-b from-orange-50/40 via-white to-white dark:from-orange-950/20 dark:via-slate-900 dark:to-slate-900 p-8 rounded-3xl border-2 border-orange-200 dark:border-orange-800/60 shadow-lg hover:shadow-2xl hover:border-[#ea580c] transition-all transform hover:-translate-y-1.5 flex flex-col justify-between"
           >
             <div className="space-y-4">
               <div className="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#ea580c] dark:text-amber-400 flex items-center justify-center font-bold text-2xl group-hover:scale-110 transition-transform shadow-sm">
-                🚚
+                👨‍🔧
               </div>
 
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-[#ea580c] dark:text-amber-400 block">
-                  Municipal Fleet Operators
+                  Municipal Ground Engineers
                 </span>
                 <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                  Tanker Driver Dashboard
+                  Field Staff & Plumbers
                 </h3>
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                For MBMC authorized tanker drivers. View assigned delivery trips today, navigate with live GPS routes, start transit, and record delivered water.
+                For MBMC field plumbers, valve operators, and quality inspectors. Inspect reported leaks, update job status on-site, call citizens, and complete work orders.
               </p>
 
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[#ea580c]">✓</span>
-                  <span>Assigned Deliveries & Trip Queue</span>
+                  <span>Assigned Pipeline Grievance Queue</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[#ea580c]">✓</span>
-                  <span>Turn-by-turn Route Map to Citizen</span>
+                  <span>On-Site Inspection & Status Workflow</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[#ea580c]">✓</span>
-                  <span>1-Tap &quot;In Transit&quot; &amp; &quot;Delivered&quot; Status</span>
+                  <span>Resolution Notes & Proof Upload</span>
                 </div>
               </div>
             </div>
@@ -199,7 +215,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 type="button"
                 className="w-full py-3.5 bg-gradient-to-r from-[#ea580c] to-[#fd7e14] hover:from-[#c2410c] hover:to-[#ea580c] text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2 group-hover:shadow-orange-500/25"
               >
-                <span>Enter Driver Portal</span>
+                <span>Enter Field Staff Portal</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
               </button>
             </div>
@@ -225,7 +241,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Full-featured control center: publish emergency outage notices, manage water timetable grids, resolve grievances, and dispatch tankers on Kanban.
+                Full-featured control center: publish emergency outage notices, manage water timetable grids, assign field plumbers, and monitor resolution analytics.
               </p>
 
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
@@ -239,7 +255,7 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-900 dark:text-slate-100 font-bold">✓</span>
-                  <span>Grievance Desk & Tanker Kanban Dispatch</span>
+                  <span>Complaint Resolution Desk & CSV Export</span>
                 </div>
               </div>
             </div>
@@ -286,19 +302,19 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
             <p className="text-[11px] text-slate-500 mt-1">Surya Dam Gravity & Jambhul Line</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50">
-            <div className="flex items-center gap-2 text-[#ea580c] dark:text-amber-400 mb-2">
-              <Truck className="w-5 h-5" />
-              <span className="text-xs font-semibold">Tankers Dispatched</span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {stats.tankersDispatchedToday} <span className="text-sm font-medium text-slate-500">Trips</span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">Average arrival within 22 minutes</p>
-          </div>
-
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50">
             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-2">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-xs font-semibold">Chlorination Standard</span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              100% <span className="text-sm font-medium text-slate-500">Tested</span>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-1">WHO Potable Drinking Water Compliant</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
               <Activity className="w-5 h-5" />
               <span className="text-xs font-semibold">Active Grievances</span>
             </div>
@@ -416,18 +432,15 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
           <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
-            <Truck className="w-5 h-5" />
+            <Droplets className="w-5 h-5" />
           </div>
-          <h4 className="font-bold text-slate-900 dark:text-white">4 Water Tanker Depots</h4>
+          <h4 className="font-bold text-slate-900 dark:text-white">Water Quality & Reservoirs</h4>
           <p className="text-xs text-slate-500">
-            Kharigaon Central, Sector 4 Mira Rd, Subhash Nagar, and Uttan Coastal Depots.
+            Pali Reservoir, Morva Elevated Storage, and Kashimira booster pumping stations.
           </p>
-          <button
-            onClick={onOpenQuickTanker}
-            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Book Tanker (Today/Tomorrow) →
-          </button>
+          <div className="text-xs font-bold text-blue-600 dark:text-blue-400">
+            Chlorine Level: 0.5 - 1.0 ppm
+          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">

@@ -23,14 +23,14 @@ interface ScheduleTrackerProps {
   zones: WaterZone[];
   alerts: OutageAlert[];
   onSelectAlert?: (alert: OutageAlert) => void;
-  onBookTankerForArea?: (area: SubArea) => void;
+  onReportGrievance?: (area: SubArea) => void;
 }
 
 export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
   zones,
   alerts,
   onSelectAlert,
-  onBookTankerForArea,
+  onReportGrievance,
 }) => {
   const [selectedZoneId, setSelectedZoneId] = useState<string>('zone-1');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('be-1');
@@ -624,18 +624,18 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
             </div>
           </div>
 
-          {/* Quick Tanker Action */}
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white space-y-3 shadow-lg shadow-emerald-500/20">
-            <h4 className="font-black text-lg">Facing Water Shortage?</h4>
-            <p className="text-xs text-emerald-100 leading-relaxed">
-              Book an emergency MBMC water tanker to <strong>{selectedArea.name}</strong> for Today or Tomorrow.
+          {/* Quick Grievance Action */}
+          <div className="bg-gradient-to-br from-rose-600 to-amber-600 rounded-3xl p-6 text-white space-y-3 shadow-lg shadow-rose-500/20">
+            <h4 className="font-black text-lg">Facing Supply Disruption?</h4>
+            <p className="text-xs text-rose-100 leading-relaxed">
+              Experiencing low pressure, contaminated tap water, or visible leakage in <strong>{selectedArea.name}</strong>?
             </p>
-            {onBookTankerForArea && (
+            {onReportGrievance && (
               <button
-                onClick={() => onBookTankerForArea(selectedArea)}
-                className="w-full py-3 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs shadow-md transition transform hover:scale-102 flex items-center justify-center gap-2"
+                onClick={() => onReportGrievance(selectedArea)}
+                className="w-full py-3 bg-white text-rose-800 hover:bg-rose-50 rounded-xl font-bold text-xs shadow-md transition transform hover:scale-102 flex items-center justify-center gap-2"
               >
-                <span>Book Tanker to {selectedArea.name}</span>
+                <span>Report Grievance for {selectedArea.name}</span>
                 <span>→</span>
               </button>
             )}
