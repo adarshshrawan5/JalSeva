@@ -24,6 +24,7 @@ interface ScheduleTrackerProps {
   alerts: OutageAlert[];
   onSelectAlert?: (alert: OutageAlert) => void;
   onReportGrievance?: (area: SubArea) => void;
+  onBookTankerForArea?: (area: SubArea) => void;
 }
 
 export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
@@ -31,6 +32,7 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
   alerts,
   onSelectAlert,
   onReportGrievance,
+  onBookTankerForArea,
 }) => {
   const [selectedZoneId, setSelectedZoneId] = useState<string>('zone-1');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('be-1');
@@ -85,34 +87,81 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
     const currentMinutes = now.getMinutes();
     const currentTotalMinutes = currentHours * 60 + currentMinutes;
 
-    const [mH, mM] = selectedZone.supplyWindows.morning.start.split(':').map(Number);
-    const [eH, eM] = selectedZone.supplyWindows.evening.start.split(':').map(Number);
-    const morningTotal = mH * 60 + mM;
-    const eveningTotal = eH * 60 + eM;
+    const [mStartH, mStartM] = selectedZone.supplyWindows.morning.start.split(':').map(Number);
+    const [mEndH, mEndM] = selectedZone.supplyWindows.morning.end.split(':').map(Number);
+    const morningStartTotal = mStartH * 60 + mStartM;
+    const morningEndTotal = mEndH * 60 + mEndM;
 
-    let targetTotal = morningTotal;
-    let label = 'Morning Supply';
+    const hasEvening = selectedZone.supplyWindows.hasEveningSupply !== false && !!selectedZone.supplyWindows.evening;
 
-    if (currentTotalMinutes < morningTotal) {
-      targetTotal = morningTotal;
-      label = "Today's Morning Supply";
-    } else if (currentTotalMinutes < eveningTotal) {
-      targetTotal = eveningTotal;
-      label = "Today's Evening Supply";
-    } else {
-      // Tomorrow morning
-      targetTotal = morningTotal + 24 * 60;
-      label = "Tomorrow's Morning Supply";
+    // Is water currently running right now?
+    if (currentTotalMinutes >= morningStartTotal && currentTotalMinutes <= morningEndTotal) {
+      const remaining = morningEndTotal - currentTotalMinutes;
+      return {
+        label: "● Active Water Supply In Progress (पाणी सुरू आहे)",
+        timeString: `${remaining} mins remaining in morning window`,
+      };
     }
 
-    const diffMinutes = targetTotal - currentTotalMinutes;
-    const hours = Math.floor(diffMinutes / 60);
-    const mins = diffMinutes % 60;
+    if (hasEvening && selectedZone.supplyWindows.evening) {
+      const [eStartH, eStartM] = selectedZone.supplyWindows.evening.start.split(':').map(Number);
+      const [eEndH, eEndM] = selectedZone.supplyWindows.evening.end.split(':').map(Number);
+      const eveningStartTotal = eStartH * 60 + eStartM;
+      const eveningEndTotal = eEndH * 60 + eEndM;
 
-    return {
-      label,
-      timeString: `${hours} hours ${mins} minutes`,
-    };
+      if (currentTotalMinutes >= eveningStartTotal && currentTotalMinutes <= eveningEndTotal) {
+        const remaining = eveningEndTotal - currentTotalMinutes;
+        return {
+          label: "● Active Evening Water Supply In Progress (पाणी सुरू आहे)",
+          timeString: `${remaining} mins remaining in evening window`,
+        };
+      }
+
+      let targetTotal = morningStartTotal;
+      let label = "Today's Morning Supply";
+
+      if (currentTotalMinutes < morningStartTotal) {
+        targetTotal = morningStartTotal;
+        label = "Today's Morning Supply (06:00 - 09:00)";
+      } else if (currentTotalMinutes < eveningStartTotal) {
+        targetTotal = eveningStartTotal;
+        label = "Today's Evening Supply (" + selectedZone.supplyWindows.evening.start + ")";
+      } else {
+        targetTotal = morningStartTotal + 24 * 60;
+        label = "Tomorrow's Morning Supply (" + selectedZone.supplyWindows.morning.start + ")";
+      }
+
+      const diffMinutes = targetTotal - currentTotalMinutes;
+      const hours = Math.floor(diffMinutes / 60);
+      const mins = diffMinutes % 60;
+
+      return {
+        label,
+        timeString: `${hours} hours ${mins} minutes`,
+      };
+    } else {
+      // Single morning shift zone (like Zone 4: Uttan)
+      let targetTotal = morningStartTotal;
+      let label = "Today's Morning Supply (Strictly 07:00 AM - 08:00 AM)";
+
+      if (currentTotalMinutes < morningStartTotal) {
+        targetTotal = morningStartTotal;
+        label = "Today's Morning Supply (07:00 AM - 08:00 AM)";
+      } else {
+        // Evening has NO supply, next window is tomorrow morning 07:00 AM
+        targetTotal = morningStartTotal + 24 * 60;
+        label = "Tomorrow's Morning Supply (No Evening Supply in Uttan)";
+      }
+
+      const diffMinutes = targetTotal - currentTotalMinutes;
+      const hours = Math.floor(diffMinutes / 60);
+      const mins = diffMinutes % 60;
+
+      return {
+        label,
+        timeString: `${hours} hours ${mins} minutes`,
+      };
+    }
   }, [selectedZone]);
 
   // Live Location Detection
@@ -482,7 +531,7 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300 flex items-center gap-1.5">
                       <Waves className="w-4 h-4 text-sky-600" />
-                      Morning Window
+                      Morning Window (सकाळचा पुरवठा)
                     </span>
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-200 dark:bg-sky-900 text-sky-900 dark:text-sky-200">
                       Pressure: {selectedZone.supplyWindows.pressure}
@@ -494,36 +543,59 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
                     {selectedZone.supplyWindows.morning.end}
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Primary overhead tank replenishment window. Booster pumps active.
+                    {selectedZone.id === 'zone-4'
+                      ? 'Strict 1-hour coastal window from Uttan Elevated Water Tank (पाण्याची टाकी) & Pali Reservoir.'
+                      : 'Primary overhead tank replenishment window. Booster pumps active.'}
                   </p>
                 </div>
 
-                {/* Evening Window */}
-                <div className="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
-                      <Waves className="w-4 h-4 text-indigo-600" />
-                      Evening Window
-                    </span>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-200 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-200">
-                      Standard Supply
-                    </span>
+                {/* Evening Window / Single Shift Notice */}
+                {selectedZone.supplyWindows.hasEveningSupply !== false && selectedZone.supplyWindows.evening ? (
+                  <div className="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
+                        <Waves className="w-4 h-4 text-indigo-600" />
+                        Evening Window (संध्याकाळचा पुरवठा)
+                      </span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-200 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-200">
+                        Standard Supply
+                      </span>
+                    </div>
+                    <div className="text-3xl font-black text-slate-900 dark:text-white">
+                      {selectedZone.supplyWindows.evening.start}{' '}
+                      <span className="text-base font-semibold text-slate-500">to</span>{' '}
+                      {selectedZone.supplyWindows.evening.end}
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      Domestic peak evening consumption window. Full municipal pressure.
+                    </p>
                   </div>
-                  <div className="text-3xl font-black text-slate-900 dark:text-white">
-                    {selectedZone.supplyWindows.evening.start}{' '}
-                    <span className="text-base font-semibold text-slate-500">to</span>{' '}
-                    {selectedZone.supplyWindows.evening.end}
+                ) : (
+                  <div className="p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-amber-600" />
+                        Evening Window (संध्याकाळी पुरवठा)
+                      </span>
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 dark:bg-amber-900 dark:text-amber-200">
+                        No Evening Supply
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-amber-900 dark:text-amber-200">
+                      NO EVENING SUPPLY
+                    </div>
+                    <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                      Single-shift coastal protocol: Elevated terrain requires Pali reservoir daytime recharge. Water is strictly released in the morning (07:00 AM - 08:00 AM) only.
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Domestic peak evening consumption window. Full municipal pressure.
-                  </p>
-                </div>
+                )}
               </div>
             ) : (
               /* Weekly Calendar Grid (7 Days) */
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {daysOfWeek.map((day) => {
                   const isToday = day === todayDayName;
+                  const hasEvening = selectedZone.supplyWindows.hasEveningSupply !== false && !!selectedZone.supplyWindows.evening;
                   return (
                     <div
                       key={day}
@@ -542,17 +614,36 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
                         </span>
                       )}
                       <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 mt-1">
-                        AM: {selectedZone.supplyWindows.morning.start}
+                        AM: {selectedZone.supplyWindows.morning.start} - {selectedZone.supplyWindows.morning.end}
                       </div>
                       <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                        PM: {selectedZone.supplyWindows.evening.start}
+                        PM: {hasEvening && selectedZone.supplyWindows.evening ? selectedZone.supplyWindows.evening.start : 'No Supply'}
                       </div>
-                      <div className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
-                        Normal
+                      <div className={`text-[9px] font-bold mt-1 ${hasEvening ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {hasEvening ? 'Normal' : 'Single Shift'}
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Special Notice if zone has verified notes */}
+            {selectedZone.supplyWindows.specialNotice && (
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <strong className="block font-bold">MBMC Official Locality Notice:</strong>
+                  <p>{selectedZone.supplyWindows.specialNotice}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Selected SubArea Specific Timing Notice */}
+            {selectedArea.timingNotice && (
+              <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-900 dark:text-blue-200 flex items-center justify-between">
+                <span>📍 <strong>{selectedArea.name}:</strong> {selectedArea.timingNotice}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded">Verified</span>
               </div>
             )}
 

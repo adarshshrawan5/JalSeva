@@ -1,6 +1,10 @@
 import React from 'react';
 import { ActiveTab } from '../common/Navbar';
 import { OutageAlert, SystemStats } from '../../types';
+import { ConservationTipsWidget } from './ConservationTipsWidget';
+import { ScadaTelemetryWidget } from '../common/ScadaTelemetryWidget';
+import { RainwaterCalculator } from './RainwaterCalculator';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Calendar,
   AlertCircle,
@@ -18,7 +22,17 @@ import {
   MapPin,
   Check,
   ShieldCheck,
+  Truck,
+  Gauge,
+  Sparkles,
+  BarChart3,
 } from 'lucide-react';
+import { WaterConsumptionDashboard } from './WaterConsumptionDashboard';
+
+// Authentic MBMC municipal facility photo assets
+const HERO_WATER_PLANT_IMG = '/src/assets/images/hero_water_infrastructure_1791556389961.jpg';
+const TANKER_FLEET_IMG = '/src/assets/images/card_tanker_fleet_1791556405148.jpg';
+const WATER_LAB_IMG = '/src/assets/images/card_water_testing_lab_1791556421425.jpg';
 
 interface CitizenHomeProps {
   setActiveTab: (tab: ActiveTab) => void;
@@ -34,6 +48,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
   onSelectAlert,
 }) => {
   const activeAlerts = alerts.filter((a) => a.status === 'Active');
+  const { language, t } = useLanguage();
 
   return (
     <div className="space-y-12 pb-12">
@@ -99,32 +114,197 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
 
             <button
               onClick={() => setActiveTab('tracker')}
-              className="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-bold text-sm backdrop-blur-md transition flex items-center gap-2"
+              className="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-bold text-sm backdrop-blur-md transition flex items-center gap-2 cursor-pointer"
             >
               <Search className="w-4 h-4 text-sky-200" />
               <span>Track Docket Status</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const el = document.getElementById('citizen-consumption-dashboard');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-5 py-3.5 bg-sky-500/20 hover:bg-sky-500/30 text-white border border-sky-400/30 rounded-2xl font-bold text-sm backdrop-blur-md transition flex items-center gap-2 cursor-pointer"
+            >
+              <BarChart3 className="w-4 h-4 text-sky-300" />
+              <span>Usage Dashboard</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* 4 Prominent Quick Access Cards */}
+      {/* Monthly Water Consumption & Meter Reading Analytics Dashboard (Recharts) */}
+      <section id="citizen-consumption-dashboard">
+        <WaterConsumptionDashboard onNavigateToMeterReader={() => setActiveTab('meter-reading')} />
+      </section>
+
+      {/* Real-Time SCADA Telemetry Widget */}
+      <section>
+        <ScadaTelemetryWidget />
+      </section>
+
+      {/* AI Rainwater Harvesting Calculator */}
+      <section>
+        <RainwaterCalculator />
+      </section>
+
+      {/* Conservation Tips Rotating Daily Widget */}
+      <section>
+        <ConservationTipsWidget />
+      </section>
+
+      {/* Municipal Water Infrastructure & Quality Assurance Spotlight */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>MBMC Infrastructure &amp; Water Quality Assurance</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+              Verified Municipal Supply Network
+            </h2>
+          </div>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Surya Dam 110 MLD • 4 Tanker Depots • IS 10500 Potable
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Facility 1: Surya Dam Water Pipeline Network */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-lg transition">
+            <div>
+              <div className="relative h-44 sm:h-48 overflow-hidden bg-slate-950">
+                <img
+                  src={HERO_WATER_PLANT_IMG}
+                  alt="Surya Dam Water Purification and Pipeline Infrastructure"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3.5">
+                  <span className="text-[11px] font-bold text-white bg-blue-600/90 px-2.5 py-0.5 rounded-full backdrop-blur-sm flex items-center gap-1">
+                    <Droplets className="w-3 h-3" />
+                    <span>Surya Dam Hub: 110 MLD</span>
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 space-y-2">
+                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                  Piped Supply &amp; Pressure Transmission
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Pressurized gravity pipeline transmission delivering uninterrupted potable water to 809,378 citizens across all 4 zones.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 pt-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('schedule')}
+                className="w-full py-2.5 px-3 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>Check Zone Timetable</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Facility 2: Emergency Tanker Fleet */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-lg transition">
+            <div>
+              <div className="relative h-44 sm:h-48 overflow-hidden bg-slate-950">
+                <img
+                  src={TANKER_FLEET_IMG}
+                  alt="MBMC Emergency Potable Water Tanker Fleet"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3.5">
+                  <span className="text-[11px] font-bold text-white bg-orange-600/90 px-2.5 py-0.5 rounded-full backdrop-blur-sm flex items-center gap-1">
+                    <Truck className="w-3 h-3" />
+                    <span>Fleet: 4 Auxiliary Hubs</span>
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 space-y-2">
+                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                  Emergency Tanker Fleet &amp; CHS Dispatch
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  GPS-tracked municipal tankers (5,000L - 15,000L) operating 24x7 with Two-Way OTP verification to prevent unauthorized diversions.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 pt-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('tanker-book')}
+                className="w-full py-2.5 px-3 rounded-xl bg-orange-50 dark:bg-orange-950/60 hover:bg-orange-100 text-[#ea580c] dark:text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>Book Tanker (Today/Tomorrow)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Facility 3: Central Water Quality & Potability Lab */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-lg transition">
+            <div>
+              <div className="relative h-44 sm:h-48 overflow-hidden bg-slate-950">
+                <img
+                  src={WATER_LAB_IMG}
+                  alt="MBMC Central Water Testing & Potability Assurance Laboratory"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3.5">
+                  <span className="text-[11px] font-bold text-white bg-emerald-600/90 px-2.5 py-0.5 rounded-full backdrop-blur-sm flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Potability: 99.4% Certified</span>
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 space-y-2">
+                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                  Continuous Water Purity &amp; Safety Testing
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Certified municipal laboratory testing samples daily across 16 wards for pH, chlorine, and turbidity to ensure clean tap water.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 pt-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('complaint-file')}
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>Report Quality Issue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6 Prominent Quick Access Cards */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <span>Citizen Core Modules</span>
+              <span>{t.coreModulesTitle}</span>
               <span className="text-xs font-bold text-[#ea580c] dark:text-amber-400 bg-orange-100 dark:bg-orange-950/50 px-2.5 py-0.5 rounded-full">
                 जलसेवा
               </span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Access official municipal water services in under 3 clicks
+              {t.coreModulesSub}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Card 1: View Schedule */}
           <div
             onClick={() => setActiveTab('schedule')}
@@ -146,7 +326,51 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 2: Report Grievance */}
+          {/* Card 2: Book Tanker / CHS Bulk */}
+          <div
+            onClick={() => setActiveTab('tanker-book')}
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-[#ea580c] dark:hover:border-amber-400 transition-all transform hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#ea580c] dark:text-amber-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Truck className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
+              <span>Book Tanker (CHS Bulk)</span>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#ea580c] transition group-hover:translate-x-1" />
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Emergency municipal tanker delivery for households and CHS societies with multi-tanker fleet & 4-digit OTP.
+            </p>
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-[#ea580c] dark:text-amber-400 flex items-center gap-1">
+              <span>Today or Tomorrow Dispatch</span>
+              <span>→</span>
+            </div>
+          </div>
+
+          {/* Card 3: Water Meter Self-Reading (New!) */}
+          <div
+            onClick={() => setActiveTab('meter-reading')}
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-cyan-500 dark:hover:border-cyan-500 transition-all transform hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-950/80 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Gauge className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
+              <span>Meter Self-Reading</span>
+              <span className="text-[10px] bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200 font-bold px-1.5 py-0.5 rounded">
+                Instant Bill
+              </span>
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Upload photo of your water meter dial for transparent tariff estimation and instant MBMC audit docket.
+            </p>
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 flex items-center gap-1">
+              <span>Estimate Monthly Bill</span>
+              <span>→</span>
+            </div>
+          </div>
+
+          {/* Card 4: Report Grievance */}
           <div
             onClick={() => setActiveTab('complaint-file')}
             className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-rose-500 dark:hover:border-rose-500 transition-all transform hover:-translate-y-1"
@@ -167,7 +391,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 3: Track Status */}
+          {/* Card 5: Track Status */}
           <div
             onClick={() => setActiveTab('tracker')}
             className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-purple-500 dark:hover:border-purple-500 transition-all transform hover:-translate-y-1"
@@ -176,11 +400,11 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
               <Search className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
-              <span>Track Redressal</span>
+              <span>Track Live Status</span>
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition group-hover:translate-x-1" />
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Real-time visual journey for your complaints from Registration → Plumber Assigned → In Progress → Tested & Resolved.
+              Real-time visual journey for your complaints and live GPS tracking for dispatched water tankers with OTP.
             </p>
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
               <span>Search by Docket / Phone</span>
@@ -188,7 +412,7 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             </div>
           </div>
 
-          {/* Card 4: Ward Directory */}
+          {/* Card 6: Ward Directory */}
           <div
             onClick={() => setActiveTab('support')}
             className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-emerald-500 dark:hover:border-emerald-500 transition-all transform hover:-translate-y-1"

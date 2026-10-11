@@ -11,6 +11,7 @@ import {
   getTodayDateString,
   getTomorrowDateString,
 } from '../../services/storageService';
+import { DeliveryReportModal } from '../common/DeliveryReportModal';
 import {
   Truck,
   CheckCircle2,
@@ -25,6 +26,8 @@ import {
   AlertTriangle,
   ArrowRight,
   ShieldCheck,
+  FileText,
+  Key,
 } from 'lucide-react';
 
 interface AdminTankerManagerProps {
@@ -36,10 +39,11 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
   bookings,
   adminName,
 }) => {
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
   const [quickDateFilter, setQuickDateFilter] = useState<'All' | 'Today' | 'Tomorrow' | 'Pending'>('All');
   const [selectedBooking, setSelectedBooking] = useState<TankerBooking | null>(null);
+  const [selectedBookingForReport, setSelectedBookingForReport] = useState<TankerBooking | null>(null);
 
   // Dispatch modal
   const [showDispatchModal, setShowDispatchModal] = useState(false);
@@ -265,7 +269,7 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                         {b.status === 'Pending' && (
                           <button
                             onClick={() => handleApprove(b.id)}
-                            className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition"
+                            className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition text-center"
                           >
                             Approve
                           </button>
@@ -274,7 +278,7 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                         {b.status === 'Approved' && (
                           <button
                             onClick={() => handleOpenDispatch(b)}
-                            className="w-full py-1.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1"
+                            className="flex-1 py-1.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1"
                           >
                             <Truck className="w-3 h-3" />
                             <span>Assign Driver</span>
@@ -284,19 +288,27 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                         {b.status === 'In Transit' && (
                           <button
                             onClick={() => handleMarkDelivered(b.id)}
-                            className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1"
+                            className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-1"
                           >
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>Mark Delivered</span>
+                            <span>Deliver</span>
                           </button>
                         )}
 
                         {b.status === 'Delivered' && (
                           <span className="text-emerald-600 font-bold flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Completed</span>
+                            <span>Delivered</span>
                           </span>
                         )}
+
+                        <button
+                          onClick={() => setSelectedBookingForReport(b)}
+                          className="px-2 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[10px] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                          title="View Official Report"
+                        >
+                          Report
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -387,6 +399,12 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                           Deliver
                         </button>
                       )}
+                      <button
+                        onClick={() => setSelectedBookingForReport(b)}
+                        className="px-2.5 py-1 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 ml-1.5"
+                      >
+                        Report
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -402,11 +420,26 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
           <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
             <h4 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Truck className="w-5 h-5 text-[#ea580c]" />
-              <span>Assign Driver & Vehicle for {selectedBooking.id}</span>
+              <span>Assign Driver &amp; Vehicle for {selectedBooking.id}</span>
             </h4>
             <p className="text-xs text-slate-500">
               Select available tanker driver from <strong>{selectedBooking.assignedDepotName}</strong>.
             </p>
+
+            {/* OTP Handover Announcement */}
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-emerald-900 dark:text-emerald-300">
+                  Citizen Handover OTP:
+                </span>
+                <span className="font-mono font-black text-sm text-[#ea580c] bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-emerald-300">
+                  #{selectedBooking.deliveryOtp}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500">
+                This verification code will be synchronized to the driver&apos;s terminal for mandatory doorstep verification.
+              </p>
+            </div>
 
             <div className="space-y-2 max-h-56 overflow-y-auto text-xs">
               {MBMC_DRIVERS.map((driver) => (
@@ -428,7 +461,7 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                     <div>
                       <strong className="block">{driver.name}</strong>
                       <span className="text-[10px] text-slate-500 font-mono">
-                        Vehicle: {driver.vehicleNumber} ({driver.capacity}L)
+                        Vehicle: {driver.vehicleNumber} ({driver.capacity}L) • Mobile: {driver.phone}
                       </span>
                     </div>
                   </div>
@@ -450,11 +483,19 @@ export const AdminTankerManager: React.FC<AdminTankerManagerProps> = ({
                 onClick={handleConfirmDispatch}
                 className="px-5 py-2 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold rounded-xl text-xs"
               >
-                Assign & Dispatch Tanker
+                Assign &amp; Dispatch Tanker
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Official Delivery & OTP Report Modal */}
+      {selectedBookingForReport && (
+        <DeliveryReportModal
+          booking={selectedBookingForReport}
+          onClose={() => setSelectedBookingForReport(null)}
+        />
       )}
     </div>
   );

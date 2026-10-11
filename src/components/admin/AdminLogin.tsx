@@ -12,7 +12,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
   onLoginSuccess,
   onBackToCitizen,
 }) => {
-  const [email, setEmail] = useState('superadmin@mbmc.gov.in');
+  const [email, setEmail] = useState('adarsh.yadav@mbmc.gov.in');
   const [password, setPassword] = useState('mbmc@2026');
   const [error, setError] = useState('');
 
@@ -23,13 +23,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
   }[] = [
     {
       user: {
-        id: 'adm-1',
-        name: 'Er. Ramesh Sawant',
-        email: 'superadmin@mbmc.gov.in',
+        id: 'adm-adarsh',
+        name: 'Adarsh Yadav',
+        email: 'adarsh.yadav@mbmc.gov.in',
+        phone: '7715804452',
         role: 'Super Admin',
+        designation: 'Chief Water Supply Engineer & Super Admin',
+        employeeId: 'MBMC-WTR-001',
         lastLogin: new Date().toISOString(),
       },
-      roleDesc: 'Superintendent Engineer (Full Municipal Authority)',
+      roleDesc: 'Superintendent Water Engineer (Direct line: +91 7715804452)',
       badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300',
     },
     {

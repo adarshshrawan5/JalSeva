@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import {
   WaterZone,
   OutageAlert,
@@ -9,13 +10,16 @@ import {
   AdminUser,
   Driver,
   SubArea,
+  CitizenUser,
 } from './types';
 import { storageService } from './services/storageService';
 import { Navbar, ActiveTab } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { AlertTicker } from './components/common/AlertTicker';
 import { Modal } from './components/common/Modal';
+import { ProfileModal } from './components/common/ProfileModal';
 import { MainLandingPage } from './components/common/MainLandingPage';
+import { JalSevaInitializer } from './components/common/JalSevaInitializer';
 import { CitizenLogin } from './components/citizen/CitizenLogin';
 import { CitizenHome } from './components/citizen/CitizenHome';
 import { ScheduleTracker } from './components/citizen/ScheduleTracker';
@@ -23,6 +27,7 @@ import { ComplaintForm } from './components/citizen/ComplaintForm';
 import { ComplaintTracker } from './components/citizen/ComplaintTracker';
 import { TankerBookingForm } from './components/citizen/TankerBookingForm';
 import { TankerTracker } from './components/citizen/TankerTracker';
+import { WaterMeterReader } from './components/citizen/WaterMeterReader';
 import { SupportSection } from './components/citizen/SupportSection';
 import { DriverLogin } from './components/driver/DriverLogin';
 import { DriverDashboard } from './components/driver/DriverDashboard';
@@ -43,6 +48,7 @@ import {
   ArrowRight,
   ShieldCheck,
   User,
+  WifiOff,
 } from 'lucide-react';
 
 export type AppView = 'landing' | 'citizen-login' | 'citizen' | 'driver-login' | 'driver' | 'admin-login' | 'admin';
@@ -54,7 +60,9 @@ export default function App() {
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>('dashboard');
 
   // Authenticated sessions
-  const [citizenSession, setCitizenSession] = useState<{ phone: string; name: string } | null>(null);
+  const [citizenSession, setCitizenSession] = useState<CitizenUser | null>(() => storageService.getCitizenProfile());
+  const [citizenAuthMode, setCitizenAuthMode] = useState<'login' | 'register'>('login');
+  const [showCitizenProfile, setShowCitizenProfile] = useState(false);
   const [driverUser, setDriverUser] = useState<Driver | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
@@ -65,11 +73,32 @@ export default function App() {
   const [bookings, setBookings] = useState<TankerBooking[]>(() => storageService.getBookings());
   const [stats, setStats] = useState<SystemStats>(() => storageService.getStats());
 
+  // JalSeva Initializer Startup Animation
+  const [showInitializer, setShowInitializer] = useState<boolean>(() => {
+    return !sessionStorage.getItem('jalseva_init_done');
+  });
+
   // Inter-component Navigation parameters
   const [tankerInitialArea, setTankerInitialArea] = useState<string | undefined>(undefined);
   const [trackingInitialComplaintId, setTrackingInitialComplaintId] = useState<string | undefined>(undefined);
   const [trackingInitialBookingId, setTrackingInitialBookingId] = useState<string | undefined>(undefined);
   const [trackerMode, setTrackerMode] = useState<'complaint' | 'tanker'>('complaint');
+
+  // Offline PWA network detection for coastal / weak connectivity pockets
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Selected Outage for Modal
   const [selectedAlertModal, setSelectedAlertModal] = useState<OutageAlert | null>(null);
@@ -89,19 +118,25 @@ export default function App() {
   }, []);
 
   // Quick Action Handlers
-  const handleOpenQuickSchedule = () => {
+  const handleOpenQuickSchedule = (zoneId?: string) => {
     setActiveCitizenTab('schedule');
     setCurrentView('citizen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenQuickTanker = () => {
+  const handleOpenQuickTanker = (areaName?: string) => {
+    if (areaName) {
+      setTankerInitialArea(areaName);
+    }
     setActiveCitizenTab('tanker-book');
     setCurrentView('citizen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenQuickComplaint = () => {
+  const handleOpenQuickComplaint = (areaName?: string) => {
+    if (areaName) {
+      setTankerInitialArea(areaName);
+    }
     setActiveCitizenTab('complaint-file');
     setCurrentView('citizen');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -142,10 +177,39 @@ export default function App() {
     setActiveAdminTab('tankers');
   };
 
+  // Citizen Authentication Handlers
+  const handleOpenSignIn = () => {
+    setCitizenAuthMode('login');
+    setCurrentView('citizen-login');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenSignUp = () => {
+    setCitizenAuthMode('register');
+    setCurrentView('citizen-login');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLogoutCitizen = () => {
+    storageService.clearCitizenProfile();
+    setCitizenSession(null);
+    setShowCitizenProfile(false);
+  };
+
   return (
-    <ThemeProvider>
-      <div className="min-h-screen flex flex-col font-sans transition-colors duration-200">
-        {/* VIEW 1: DRIVER DASHBOARD & LOGIN */}
+    <LanguageProvider>
+      <ThemeProvider>
+        {/* JalSeva Initializer Startup Simulation */}
+        <JalSevaInitializer
+          isOpen={showInitializer}
+          onComplete={() => {
+            sessionStorage.setItem('jalseva_init_done', 'true');
+            setShowInitializer(false);
+          }}
+        />
+
+        <div className="min-h-screen flex flex-col font-sans transition-colors duration-200">
+          {/* VIEW 1: DRIVER DASHBOARD & LOGIN */}
         {currentView === 'driver-login' && (
           <DriverLogin
             onLoginSuccess={(driver) => {
@@ -232,8 +296,18 @@ export default function App() {
         {/* VIEW 3: CITIZEN LOGIN */}
         {currentView === 'citizen-login' && (
           <CitizenLogin
-            onLoginSuccess={(phone, name) => {
-              setCitizenSession({ phone, name });
+            initialMode={citizenAuthMode}
+            onLoginSuccess={(phone, name, address, areaName) => {
+              const profile: CitizenUser = {
+                id: 'cit-' + phone,
+                name,
+                phone,
+                address,
+                areaName,
+                joinedDate: new Date().toISOString(),
+              };
+              storageService.saveCitizenProfile(profile);
+              setCitizenSession(profile);
               setCurrentView('citizen');
               setActiveCitizenTab('home');
             }}
@@ -272,7 +346,23 @@ export default function App() {
               }}
               isAdminLoggedIn={!!adminUser}
               isDriverLoggedIn={!!driverUser}
+              citizenUser={citizenSession}
+              onOpenCitizenProfile={() => setShowCitizenProfile(true)}
+              onOpenSignIn={handleOpenSignIn}
+              onOpenSignUp={handleOpenSignUp}
+              onLogoutCitizen={handleLogoutCitizen}
+              onReplayInitializer={() => setShowInitializer(true)}
             />
+
+            {/* PWA Low-Connectivity / Offline Banner */}
+            {!isOnline && (
+              <div className="bg-amber-600 text-white text-xs font-bold px-4 py-2 text-center flex items-center justify-center gap-2 shadow-sm">
+                <WifiOff className="w-4 h-4 animate-pulse shrink-0" />
+                <span>
+                  Offline Mode Active: Timetables & Emergency Helpline (1800-22-2026) cached locally for coastal & low-signal zones (Uttan). Any submitted forms will auto-sync when online.
+                </span>
+              </div>
+            )}
 
             {/* Live Emergency Outage Ticker Marquee */}
             <AlertTicker
@@ -321,9 +411,15 @@ export default function App() {
                         Citizen Portal:
                       </span>
                       {citizenSession ? (
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                          {citizenSession.name} (+91 {citizenSession.phone})
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowCitizenProfile(true)}
+                          className="font-semibold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 underline decoration-dotted flex items-center gap-1 cursor-pointer"
+                          title="Click to view/edit resident profile"
+                        >
+                          <span>{citizenSession.name} (+91 {citizenSession.phone})</span>
+                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.2 rounded font-bold">Profile</span>
+                        </button>
                       ) : (
                         <span className="text-slate-500">Guest Resident Mode</span>
                       )}
@@ -339,10 +435,10 @@ export default function App() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => setCitizenSession(null)}
-                          className="text-slate-400 hover:text-slate-600 font-medium"
+                          onClick={() => setShowCitizenProfile(true)}
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-bold"
                         >
-                          Switch User
+                          My Profile
                         </button>
                       )}
 
@@ -382,6 +478,8 @@ export default function App() {
                         setTrackerMode('tanker');
                         setActiveCitizenTab('tracker');
                       }}
+                      citizenUser={citizenSession}
+                      onCitizenLogin={(user) => setCitizenSession(user)}
                     />
                   )}
 
@@ -434,6 +532,10 @@ export default function App() {
                         />
                       )}
                     </div>
+                  )}
+
+                  {activeCitizenTab === 'meter-reading' && (
+                    <WaterMeterReader onBackToHome={() => setActiveCitizenTab('home')} />
                   )}
 
                   {activeCitizenTab === 'support' && <SupportSection />}
@@ -513,6 +615,18 @@ export default function App() {
               )}
             </Modal>
 
+            {/* Citizen Resident Profile Modal */}
+            <ProfileModal
+              isOpen={showCitizenProfile}
+              onClose={() => setShowCitizenProfile(false)}
+              role="citizen"
+              citizenUser={citizenSession}
+              onUpdateCitizen={(u) => setCitizenSession(u)}
+              bookings={bookings}
+              complaints={complaints}
+              onLogout={handleLogoutCitizen}
+            />
+
             {/* Municipal Footer */}
             <Footer
               setActiveTab={(tab) => {
@@ -531,5 +645,6 @@ export default function App() {
         )}
       </div>
     </ThemeProvider>
+  </LanguageProvider>
   );
 }

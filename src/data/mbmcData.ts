@@ -8,6 +8,7 @@ import {
   Complaint,
   TankerBooking,
   SystemStats,
+  MeterReadingRecord,
 } from '../types';
 
 export const MBMC_ZONES: WaterZone[] = [
@@ -31,6 +32,7 @@ export const MBMC_ZONES: WaterZone[] = [
     supplyWindows: {
       morning: { start: '06:00', end: '09:00' },
       evening: { start: '17:30', end: '20:30' },
+      hasEveningSupply: true,
       pressure: 'High',
       frequency: 'Daily Twice',
     },
@@ -55,6 +57,7 @@ export const MBMC_ZONES: WaterZone[] = [
     supplyWindows: {
       morning: { start: '05:30', end: '08:30' },
       evening: { start: '18:00', end: '21:00' },
+      hasEveningSupply: true,
       pressure: 'Normal',
       frequency: 'Daily Twice',
     },
@@ -79,6 +82,7 @@ export const MBMC_ZONES: WaterZone[] = [
     supplyWindows: {
       morning: { start: '06:30', end: '09:30' },
       evening: { start: '18:30', end: '21:30' },
+      hasEveningSupply: true,
       pressure: 'Moderate',
       frequency: 'Daily Twice',
     },
@@ -86,7 +90,7 @@ export const MBMC_ZONES: WaterZone[] = [
   {
     id: 'zone-4',
     name: 'Zone 4: Uttan & Coastal Zone',
-    marathiName: 'विभाग ४: उत्तन व सागरी विभाग',
+    marathiName: 'विभाग ४: उत्तन व सागरी विभाग (उत्तन पाण्याची टाकी)',
     wards: 'Wards 14, 15 & 16',
     population: 86278,
     color: '#d97706', // amber
@@ -95,16 +99,18 @@ export const MBMC_ZONES: WaterZone[] = [
     borderColor: 'border-amber-500',
     center: [19.2845, 72.7995],
     wardOffice: {
-      name: 'MBMC Coastal Area Office',
-      address: 'Near St. John Church, Uttan Naka, 401106',
+      name: 'MBMC Coastal Area Office & Uttan Water Tank ESR',
+      address: 'Near Pali Ground Water Reservoir, Uttan Naka, 401106',
       phone: '022-2845 2211',
       officer: 'Er. Sandeep More (Assistant Engineer)',
     },
     supplyWindows: {
-      morning: { start: '07:00', end: '10:00' },
-      evening: { start: '17:00', end: '19:30' },
-      pressure: 'Normal',
-      frequency: 'Daily (Alternating Pressure)',
+      morning: { start: '07:00', end: '08:00' },
+      evening: null,
+      hasEveningSupply: false,
+      pressure: 'High',
+      frequency: 'Daily (Morning Shift Only • 7:00 AM - 8:00 AM)',
+      specialNotice: 'Verified Municipal Schedule: Uttan & coastal belt receives water from the Uttan Elevated Storage Reservoir (ESR) strictly between 07:00 AM and 08:00 AM. There is NO evening water supply in this zone.',
     },
   },
 ];
@@ -180,23 +186,23 @@ export const MBMC_AREAS: SubArea[] = [
   { id: 'mr-22', zoneId: 'zone-3', name: 'Ramdev Park (Mira Road)', localities: ['Ramdev Park Phase 1', 'Ramdev Park Phase 2', 'Ostwal Horizon'], lat: 19.2935, lng: 72.8660, currentStatus: 'Normal' },
 
   // Zone 4: Uttan & Coastal Zone (17 areas)
-  { id: 'ut-1', zoneId: 'zone-4', name: 'Uttan Naka', localities: ['Uttan Bus Terminus', 'St. Peter School Area', 'Fish Market Naka', 'Bazaar Peth'], lat: 19.2850, lng: 72.8020, currentStatus: 'Normal' },
-  { id: 'ut-2', zoneId: 'zone-4', name: 'Gorai Road & Jetty Cross', localities: ['Gorai Creek Road', 'Essel World Ferry Point', 'Coastal Police Outpost'], lat: 19.2750, lng: 72.7890, currentStatus: 'Normal' },
-  { id: 'ut-3', zoneId: 'zone-4', name: 'Pali Village (Uttan)', localities: ['Pali Gaothan', 'Our Lady of Sea Church', 'Pali Hill View', 'Pali Beach Lane'], lat: 19.2820, lng: 72.7930, currentStatus: 'Normal' },
-  { id: 'ut-4', zoneId: 'zone-4', name: 'Chowk Village', localities: ['Chowk Gaothan', 'Chowk Chapel', 'Khadi Kinara', 'Fishing Co-op Society'], lat: 19.2910, lng: 72.8050, currentStatus: 'Normal' },
-  { id: 'ut-5', zoneId: 'zone-4', name: 'Dongri Village', localities: ['Dongri Church Road', 'Nirmal Niketan', 'Dongri Hilltop', 'Koliwada'], lat: 19.2970, lng: 72.8010, currentStatus: 'Low Pressure' },
-  { id: 'ut-6', zoneId: 'zone-4', name: 'Bhatte Bunder', localities: ['Bhatte Bunder Jetty', 'Sea Breeze Colony', 'Fishermen Wharf', 'Ice Factory Lane'], lat: 19.2890, lng: 72.7940, currentStatus: 'Normal' },
-  { id: 'ut-7', zoneId: 'zone-4', name: 'Tarodi Village', localities: ['Tarodi Gaothan', 'Tarodi Creek', 'Cross Road 1', 'Tarodi Mangroves'], lat: 19.2995, lng: 72.8090, currentStatus: 'Normal' },
-  { id: 'ut-8', zoneId: 'zone-4', name: 'Keshav Srushti Area', localities: ['Keshav Srushti Ayurvedic Institute', 'Vipassana Centre Lane', 'Hill Road'], lat: 19.2870, lng: 72.8150, currentStatus: 'Normal' },
-  { id: 'ut-9', zoneId: 'zone-4', name: 'Manori Road Coastal Stretch', localities: ['Manori Coastal Checkpoint', 'Resort Belt', 'Coconut Grove Lane'], lat: 19.2710, lng: 72.7920, currentStatus: 'Normal' },
-  { id: 'ut-10', zoneId: 'zone-4', name: 'Vailankanni Shrine Area (Bhatebandar)', localities: ['Our Lady of Vailankanni Church', 'Pilgrim Guest House Road', 'Hill Shrine'], lat: 19.2835, lng: 72.7915, currentStatus: 'Normal' },
-  { id: 'ut-11', zoneId: 'zone-4', name: 'Kashigaon Coastal Border', localities: ['Kashigaon Naka', 'Salt Pan Road', 'Toll Plaza Bypass'], lat: 19.2790, lng: 72.8120, currentStatus: 'Normal' },
-  { id: 'ut-12', zoneId: 'zone-4', name: 'Rai-Uttan Link Road', localities: ['Bridge Point', 'Mangrove Sanctuary Edge', 'Salt Fields'], lat: 19.2950, lng: 72.8140, currentStatus: 'Normal' },
-  { id: 'ut-13', zoneId: 'zone-4', name: 'Murdha-Dongri Valley', localities: ['Valley Point', 'Cattle Farm Area', 'Green View Colony'], lat: 19.3010, lng: 72.8150, currentStatus: 'Normal' },
-  { id: 'ut-14', zoneId: 'zone-4', name: 'Morva Beach Coastal Strip', localities: ['Morva Jetty', 'Fishermen Co-op', 'Sunset Point'], lat: 19.3120, lng: 72.8120, currentStatus: 'Normal' },
-  { id: 'ut-15', zoneId: 'zone-4', name: 'Uttan Light House Point', localities: ['Light House Hill', 'Naval Outpost', 'Cliff View Colony'], lat: 19.2780, lng: 72.7840, currentStatus: 'Normal' },
-  { id: 'ut-16', zoneId: 'zone-4', name: 'Dharavi Devi Temple Belt', localities: ['Temple Compound', 'Hill Steps', 'Bhakti Nivas Area'], lat: 19.2865, lng: 72.8080, currentStatus: 'Normal' },
-  { id: 'ut-17', zoneId: 'zone-4', name: 'Bandra-Uttan Seacoast Lane', localities: ['Fishermen Chawl', 'Net Drying Yard', 'Old Port Road'], lat: 19.2810, lng: 72.7880, currentStatus: 'Normal' },
+  { id: 'ut-1', zoneId: 'zone-4', name: 'Uttan Naka & Elevated Water Tank', localities: ['Uttan Water Tank (पाण्याची टाकी ESR)', 'Uttan Bus Terminus', 'St. Peter School Area', 'Fish Market Naka', 'Bazaar Peth'], lat: 19.2850, lng: 72.8020, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM strictly. No evening supply.' },
+  { id: 'ut-2', zoneId: 'zone-4', name: 'Gorai Road & Jetty Cross', localities: ['Gorai Creek Road', 'Essel World Ferry Point', 'Coastal Police Outpost'], lat: 19.2750, lng: 72.7890, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-3', zoneId: 'zone-4', name: 'Pali Village (Uttan)', localities: ['Pali Gaothan', 'Pali Water Reservoir Area', 'Our Lady of Sea Church', 'Pali Beach Lane'], lat: 19.2820, lng: 72.7930, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM strictly. No evening supply.' },
+  { id: 'ut-4', zoneId: 'zone-4', name: 'Chowk Village', localities: ['Chowk Gaothan', 'Chowk Chapel', 'Khadi Kinara', 'Fishing Co-op Society'], lat: 19.2910, lng: 72.8050, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-5', zoneId: 'zone-4', name: 'Dongri Village', localities: ['Dongri Church Road', 'Nirmal Niketan', 'Dongri Hilltop', 'Koliwada'], lat: 19.2970, lng: 72.8010, currentStatus: 'Low Pressure', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-6', zoneId: 'zone-4', name: 'Bhatte Bunder', localities: ['Bhatte Bunder Jetty', 'Sea Breeze Colony', 'Fishermen Wharf', 'Ice Factory Lane'], lat: 19.2890, lng: 72.7940, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-7', zoneId: 'zone-4', name: 'Tarodi Village', localities: ['Tarodi Gaothan', 'Tarodi Creek', 'Cross Road 1', 'Tarodi Mangroves'], lat: 19.2995, lng: 72.8090, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-8', zoneId: 'zone-4', name: 'Keshav Srushti Area', localities: ['Keshav Srushti Ayurvedic Institute', 'Vipassana Centre Lane', 'Hill Road'], lat: 19.2870, lng: 72.8150, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-9', zoneId: 'zone-4', name: 'Manori Road Coastal Stretch', localities: ['Manori Coastal Checkpoint', 'Resort Belt', 'Coconut Grove Lane'], lat: 19.2710, lng: 72.7920, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-10', zoneId: 'zone-4', name: 'Vailankanni Shrine Area (Bhatebandar)', localities: ['Our Lady of Vailankanni Church', 'Pilgrim Guest House Road', 'Hill Shrine'], lat: 19.2835, lng: 72.7915, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-11', zoneId: 'zone-4', name: 'Kashigaon Coastal Border', localities: ['Kashigaon Naka', 'Salt Pan Road', 'Toll Plaza Bypass'], lat: 19.2790, lng: 72.8120, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-12', zoneId: 'zone-4', name: 'Rai-Uttan Link Road', localities: ['Bridge Point', 'Mangrove Sanctuary Edge', 'Salt Fields'], lat: 19.2950, lng: 72.8140, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-13', zoneId: 'zone-4', name: 'Murdha-Dongri Valley', localities: ['Valley Point', 'Cattle Farm Area', 'Green View Colony'], lat: 19.3010, lng: 72.8150, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-14', zoneId: 'zone-4', name: 'Morva Beach Coastal Strip', localities: ['Morva Jetty', 'Fishermen Co-op', 'Sunset Point'], lat: 19.3120, lng: 72.8120, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-15', zoneId: 'zone-4', name: 'Uttan Light House Point', localities: ['Light House Hill', 'Naval Outpost', 'Cliff View Colony'], lat: 19.2780, lng: 72.7840, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-16', zoneId: 'zone-4', name: 'Dharavi Devi Temple Belt', localities: ['Temple Compound', 'Hill Steps', 'Bhakti Nivas Area'], lat: 19.2865, lng: 72.8080, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
+  { id: 'ut-17', zoneId: 'zone-4', name: 'Bandra-Uttan Seacoast Lane', localities: ['Fishermen Chawl', 'Net Drying Yard', 'Old Port Road'], lat: 19.2810, lng: 72.7880, currentStatus: 'Normal', timingNotice: 'Daily 07:00 AM - 08:00 AM. No evening supply.' },
 ];
 
 // Official MBMC Water Tanker Depots
@@ -254,15 +260,16 @@ export const MBMC_DEPOTS: Depot[] = [
 export const MBMC_DRIVERS: Driver[] = [
   {
     id: 'drv-1',
-    name: 'Ramesh Kumar',
-    phone: '+91 98201 44521',
-    vehicleNumber: 'MH-04-AB-1234',
+    name: 'Rahul',
+    phone: '+91 98204 88312',
+    vehicleNumber: 'MH-04-RH-8821',
     depotId: 'depot-1',
     capacity: 10000,
     currentStatus: 'Available',
     currentLocation: [19.3082, 72.8550],
     rating: 4.9,
     deliveriesToday: 4,
+    licenseNumber: 'MH0420190088214',
   },
   {
     id: 'drv-2',
@@ -275,6 +282,7 @@ export const MBMC_DRIVERS: Driver[] = [
     currentLocation: [19.2850, 72.8640],
     rating: 4.8,
     deliveriesToday: 6,
+    licenseNumber: 'MH0420170044192',
   },
   {
     id: 'drv-3',
@@ -548,6 +556,7 @@ export const INITIAL_BOOKINGS: TankerBooking[] = [
     reason: 'Emergency (no supply for 24+ hours)',
     status: 'In Transit',
     createdAt: '2026-10-07T08:00:00',
+    deliveryOtp: '5829',
     assignedDriver: MBMC_DRIVERS[0],
   },
   {
@@ -571,6 +580,7 @@ export const INITIAL_BOOKINGS: TankerBooking[] = [
     reason: 'Low Pressure (insufficient for daily needs)',
     status: 'Approved',
     createdAt: '2026-10-07T08:10:00',
+    deliveryOtp: '7412',
   },
   {
     id: 'TNK2026100801',
@@ -593,8 +603,29 @@ export const INITIAL_BOOKINGS: TankerBooking[] = [
     reason: 'Special Event (wedding, function)',
     status: 'Pending',
     createdAt: '2026-10-07T08:15:00',
+    deliveryOtp: '9364',
   },
 ];
+
+export const INITIAL_ADMIN_USER: {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  employeeId: string;
+  role: 'Super Admin';
+  lastLogin: string;
+} = {
+  id: 'adm-adarsh',
+  name: 'Adarsh Yadav',
+  email: 'adarsh.yadav@mbmc.gov.in',
+  phone: '7715804452',
+  designation: 'Chief Water Supply Engineer & Super Admin',
+  employeeId: 'MBMC-WTR-001',
+  role: 'Super Admin',
+  lastLogin: new Date().toISOString(),
+};
 
 export const TIME_SLOTS = [
   '06:00 - 08:00',
@@ -616,3 +647,144 @@ export const INITIAL_STATS: SystemStats = {
   avgResponseTimeHours: 1.8,
   tankerUtilizationPercent: 86,
 };
+
+export const INITIAL_METER_READINGS: MeterReadingRecord[] = [
+  {
+    id: 'WMR2026100901',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 154.2,
+    currentReadingKl: 177.0,
+    consumptionKl: 22.8,
+    estimatedBillAmount: 250.6,
+    readingDate: '2026-10-09',
+    status: 'Submitted',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 78.0,
+      slab3Amount: 0.0,
+      sewerageCess: 35.1,
+      meterRent: 40.0,
+    },
+  },
+  {
+    id: 'WMR2026090801',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 134.8,
+    currentReadingKl: 154.2,
+    consumptionKl: 19.4,
+    estimatedBillAmount: 209.8,
+    readingDate: '2026-09-08',
+    status: 'Verified',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 44.0,
+      slab3Amount: 0.0,
+      sewerageCess: 28.3,
+      meterRent: 40.0,
+    },
+  },
+  {
+    id: 'WMR2026080801',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 118.0,
+    currentReadingKl: 134.8,
+    consumptionKl: 16.8,
+    estimatedBillAmount: 178.6,
+    readingDate: '2026-08-08',
+    status: 'Audited',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 18.0,
+      slab3Amount: 0.0,
+      sewerageCess: 23.1,
+      meterRent: 40.0,
+    },
+  },
+  {
+    id: 'WMR2026070901',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 99.8,
+    currentReadingKl: 118.0,
+    consumptionKl: 18.2,
+    estimatedBillAmount: 195.4,
+    readingDate: '2026-07-09',
+    status: 'Audited',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 32.0,
+      slab3Amount: 0.0,
+      sewerageCess: 25.9,
+      meterRent: 40.0,
+    },
+  },
+  {
+    id: 'WMR2026060801',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 75.5,
+    currentReadingKl: 99.8,
+    consumptionKl: 24.3,
+    estimatedBillAmount: 268.6,
+    readingDate: '2026-06-08',
+    status: 'Audited',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 93.0,
+      slab3Amount: 0.0,
+      sewerageCess: 38.1,
+      meterRent: 40.0,
+    },
+  },
+  {
+    id: 'WMR2026050801',
+    consumerNumber: 'CCN-2026-90412',
+    citizenName: 'Adarsh Yadav',
+    phone: '9820123456',
+    meterSerialNumber: 'MBMC-MTR-89214',
+    zoneId: 'zone-1',
+    areaName: 'Golden Nest',
+    address: 'B-402, Shree Ram Complex, Golden Nest Phase 2, Bhayandar East',
+    previousReadingKl: 54.0,
+    currentReadingKl: 75.5,
+    consumptionKl: 21.5,
+    estimatedBillAmount: 235.0,
+    readingDate: '2026-05-08',
+    status: 'Audited',
+    tariffBreakdown: {
+      slab1Amount: 97.5,
+      slab2Amount: 65.0,
+      slab3Amount: 0.0,
+      sewerageCess: 32.5,
+      meterRent: 40.0,
+    },
+  },
+];

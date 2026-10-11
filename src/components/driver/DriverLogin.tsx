@@ -13,7 +13,7 @@ export const DriverLogin: React.FC<DriverLoginProps> = ({
   onLoginSuccess,
   onBackToHome,
 }) => {
-  const [vehicleInput, setVehicleInput] = useState('MH-04-AB-1234');
+  const [vehicleInput, setVehicleInput] = useState('MH-04-RH-8821');
   const [pinInput, setPinInput] = useState('1234');
 
   const handleManualSubmit = (e: React.FormEvent) => {

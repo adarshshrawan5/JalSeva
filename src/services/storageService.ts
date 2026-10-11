@@ -9,6 +9,8 @@ import {
   SystemStats,
   ComplaintStatus,
   TankerBookingStatus,
+  MeterReadingRecord,
+  CitizenUser,
 } from '../types';
 import {
   MBMC_ZONES,
@@ -19,6 +21,7 @@ import {
   INITIAL_COMPLAINTS,
   INITIAL_BOOKINGS,
   INITIAL_STATS,
+  INITIAL_METER_READINGS,
 } from '../data/mbmcData';
 
 const STORAGE_KEYS = {
@@ -31,6 +34,7 @@ const STORAGE_KEYS = {
   WORKERS: 'aqua_connect_workers_v1',
   STATS: 'aqua_connect_stats_v1',
   AUDIT_LOGS: 'aqua_connect_audit_logs_v1',
+  METER_READINGS: 'aqua_connect_meter_readings_v1',
 };
 
 // Date helper functions (Strict Today & Tomorrow logic)
@@ -114,6 +118,9 @@ class StorageService {
           },
         ])
       );
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.METER_READINGS)) {
+      localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(INITIAL_METER_READINGS));
     }
   }
 
@@ -372,18 +379,24 @@ class StorageService {
   }
 
   addBooking(
-    bookingData: Omit<TankerBooking, 'id' | 'createdAt' | 'status'>
+    bookingData: Omit<TankerBooking, 'id' | 'createdAt' | 'status' | 'deliveryOtp'> & { deliveryOtp?: string }
   ): TankerBooking {
     if (!isValidBookingDate(bookingData.bookingDate)) {
       throw new Error('Booking date must be strictly restricted to Today or Tomorrow.');
     }
     const bookings = this.getBookings();
     const id = generateBookingId();
+    const deliveryOtp =
+      bookingData.deliveryOtp ||
+      Math.floor(1000 + Math.random() * 9000).toString();
+
     const newBooking: TankerBooking = {
       ...bookingData,
       id,
       status: 'Pending',
       createdAt: new Date().toISOString(),
+      deliveryOtp,
+      otpVerified: false,
     };
     bookings.unshift(newBooking);
     localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
@@ -392,6 +405,155 @@ class StorageService {
     this.decrementDepotTanker(bookingData.assignedDepotId);
     this.dispatchEvent();
     return newBooking;
+  }
+
+  verifyDeliveryOtp(bookingId: string, otp: string): boolean {
+    const bookings = this.getBookings();
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (!booking) return false;
+
+    if (booking.deliveryOtp === otp.trim()) {
+      const updated = bookings.map((b) =>
+        b.id === bookingId ? { ...b, otpVerified: true } : b
+      );
+      localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(updated));
+      this.dispatchEvent();
+      return true;
+    }
+    return false;
+  }
+
+  // Location persistence across site
+  saveDetectedLocation(coords: [number, number], areaName: string, zoneId: string): void {
+    localStorage.setItem(
+      'jalseva_detected_location',
+      JSON.stringify({ coords, areaName, zoneId, timestamp: new Date().toISOString() })
+    );
+    this.dispatchEvent();
+  }
+
+  getSavedDetectedLocation(): { coords: [number, number]; areaName: string; zoneId: string } | null {
+    const raw = localStorage.getItem('jalseva_detected_location');
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  // Registered Citizens Repository (Enforcing unique phone numbers)
+  getRegisteredCitizens(): CitizenUser[] {
+    const raw = localStorage.getItem('jalseva_registered_citizens_v1');
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    // Seed with standard municipal demo citizen accounts
+    const initialSeed: CitizenUser[] = [
+      {
+        id: 'cit-9820544123',
+        name: 'Sunil Merchant',
+        phone: '9820544123',
+        areaName: 'Jesal Park',
+        address: 'Building 14, Bhakti Park, Chowpatty Road',
+        zoneId: 'zone-1',
+        joinedDate: '2026-09-15T10:00:00.000Z',
+      },
+      {
+        id: 'cit-9820123456',
+        name: 'Rajesh Kumar',
+        phone: '9820123456',
+        areaName: 'Golden Nest',
+        address: 'Flat 402, Golden Heritage Phase 2',
+        zoneId: 'zone-1',
+        joinedDate: '2026-09-20T11:30:00.000Z',
+      },
+      {
+        id: 'cit-9870188992',
+        name: 'Fatima Shaikh',
+        phone: '9870188992',
+        areaName: 'Naya Nagar',
+        address: 'A-Wing, Millat Heights, Naya Nagar',
+        zoneId: 'zone-3',
+        joinedDate: '2026-09-28T14:15:00.000Z',
+      },
+    ];
+    localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(initialSeed));
+    return initialSeed;
+  }
+
+  isPhoneRegistered(phone: string): boolean {
+    const clean = phone.replace(/\D/g, '').slice(-10);
+    const citizens = this.getRegisteredCitizens();
+    return citizens.some((c) => c.phone.replace(/\D/g, '').slice(-10) === clean);
+  }
+
+  findCitizenByPhone(phone: string): CitizenUser | null {
+    const clean = phone.replace(/\D/g, '').slice(-10);
+    const citizens = this.getRegisteredCitizens();
+    return citizens.find((c) => c.phone.replace(/\D/g, '').slice(-10) === clean) || null;
+  }
+
+  registerCitizen(citizen: Omit<CitizenUser, 'id'> & { id?: string }): { success: boolean; error?: string; citizen?: CitizenUser } {
+    const clean = citizen.phone.replace(/\D/g, '').slice(-10);
+    if (clean.length !== 10) {
+      return { success: false, error: 'Mobile number must be a valid 10-digit number.' };
+    }
+    const citizens = this.getRegisteredCitizens();
+    const existing = citizens.find((c) => c.phone.replace(/\D/g, '').slice(-10) === clean);
+    if (existing) {
+      return {
+        success: false,
+        error: `An account already exists for +91 ${clean} (${existing.name}). Please use the Log In tab or sign in directly with your registered number.`,
+      };
+    }
+
+    const newCitizen: CitizenUser = {
+      ...citizen,
+      id: citizen.id || `cit-${clean}`,
+      phone: clean,
+      joinedDate: citizen.joinedDate || new Date().toISOString(),
+    };
+    citizens.push(newCitizen);
+    localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
+    this.dispatchEvent();
+    return { success: true, citizen: newCitizen };
+  }
+
+  // Citizen Profile persistence
+  saveCitizenProfile(profile: any): void {
+    localStorage.setItem('jalseva_active_citizen_profile', JSON.stringify(profile));
+    // If saving a new profile with a phone number, make sure it is in registered citizens if not present
+    if (profile?.phone) {
+      const clean = profile.phone.replace(/\D/g, '').slice(-10);
+      const citizens = this.getRegisteredCitizens();
+      const existingIdx = citizens.findIndex((c) => c.phone.replace(/\D/g, '').slice(-10) === clean);
+      if (existingIdx >= 0) {
+        citizens[existingIdx] = { ...citizens[existingIdx], ...profile, phone: clean };
+        localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
+      } else {
+        citizens.push({
+          id: profile.id || `cit-${clean}`,
+          name: profile.name,
+          phone: clean,
+          address: profile.address,
+          areaName: profile.areaName,
+          zoneId: profile.zoneId,
+          joinedDate: profile.joinedDate || new Date().toISOString(),
+        });
+        localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
+      }
+    }
+    this.dispatchEvent();
+  }
+
+  clearCitizenProfile(): void {
+    localStorage.removeItem('jalseva_active_citizen_profile');
+    this.dispatchEvent();
+  }
+
+  getCitizenProfile(): any | null {
+    const raw = localStorage.getItem('jalseva_active_citizen_profile');
+    return raw ? JSON.parse(raw) : null;
   }
 
   updateBookingStatus(
@@ -547,6 +709,39 @@ class StorageService {
       timestamp: new Date().toISOString(),
     });
     localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(logs.slice(0, 50)));
+  }
+
+  // Meter Readings
+  getMeterReadings(): MeterReadingRecord[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.METER_READINGS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(INITIAL_METER_READINGS));
+      return INITIAL_METER_READINGS;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(INITIAL_METER_READINGS));
+        return INITIAL_METER_READINGS;
+      }
+      return parsed;
+    } catch {
+      return INITIAL_METER_READINGS;
+    }
+  }
+
+  addMeterReading(reading: Omit<MeterReadingRecord, 'id' | 'readingDate' | 'status'>): MeterReadingRecord {
+    const readings = this.getMeterReadings();
+    const newRecord: MeterReadingRecord = {
+      ...reading,
+      id: `WMR${Date.now().toString().slice(-8)}`,
+      readingDate: new Date().toISOString().split('T')[0],
+      status: 'Submitted',
+    };
+    readings.unshift(newRecord);
+    localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(readings));
+    this.dispatchEvent();
+    return newRecord;
   }
 
   resetAllData() {

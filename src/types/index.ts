@@ -19,9 +19,11 @@ export interface WaterZone {
   };
   supplyWindows: {
     morning: { start: string; end: string };
-    evening: { start: string; end: string };
+    evening?: { start: string; end: string } | null;
+    hasEveningSupply?: boolean;
     pressure: 'High' | 'Normal' | 'Moderate';
     frequency: string;
+    specialNotice?: string;
   };
 }
 
@@ -33,6 +35,7 @@ export interface SubArea {
   lat: number;
   lng: number;
   currentStatus: 'Normal' | 'Low Pressure' | 'Maintenance' | 'No Supply';
+  timingNotice?: string;
 }
 
 export type OutageType = 'Emergency Outage' | 'Planned Maintenance' | 'General Notice';
@@ -116,7 +119,7 @@ export type TankerBookingStatus =
   | 'Delivered'
   | 'Cancelled';
 
-export type TankerCapacity = 5000 | 10000 | 15000;
+export type TankerCapacity = number;
 
 export interface Depot {
   id: string;
@@ -142,6 +145,7 @@ export interface Driver {
   currentLocation?: [number, number];
   rating: number;
   deliveriesToday: number;
+  licenseNumber?: string;
 }
 
 export interface TankerBooking {
@@ -166,11 +170,55 @@ export interface TankerBooking {
   reason: string;
   status: TankerBookingStatus;
   createdAt: string;
+  deliveryOtp: string; // 4-digit verification code for secure handover
+  otpVerified?: boolean;
   assignedDriver?: Driver;
   cancellationReason?: string;
   rating?: number;
   feedback?: string;
   deliveryCompletedAt?: string;
+  // Cooperative Housing Society (CHS) Bulk Booking Fields
+  isSocietyBooking?: boolean;
+  societyName?: string;
+  societyRegNumber?: string;
+  authorizedPersonName?: string;
+  authorizedPersonPhone?: string;
+  tankerCount?: number;
+  totalVolumeLiters?: number;
+  staggeredDispatch?: boolean;
+  societySumpCapacityLiters?: number;
+  bulkDiscountPercent?: number;
+  // Payment Details
+  paymentStatus?: 'Paid' | 'Pending' | 'Waived';
+  paymentMethod?: string;
+  transactionId?: string;
+  amountPaid?: number;
+  paidAt?: string;
+}
+
+export interface MeterReadingRecord {
+  id: string; // WMR2026100901
+  consumerNumber: string;
+  citizenName: string;
+  phone: string;
+  meterSerialNumber: string;
+  zoneId: WaterZoneId;
+  areaName: string;
+  address: string;
+  previousReadingKl: number;
+  currentReadingKl: number;
+  consumptionKl: number;
+  estimatedBillAmount: number;
+  photoUrl?: string;
+  readingDate: string;
+  status: 'Submitted' | 'Verified' | 'Audited';
+  tariffBreakdown: {
+    slab1Amount: number; // 0-15 kL
+    slab2Amount: number; // 16-30 kL
+    slab3Amount: number; // >30 kL
+    sewerageCess: number;
+    meterRent: number;
+  };
 }
 
 export interface FieldWorker {
@@ -194,13 +242,18 @@ export interface CitizenUser {
   zoneId?: WaterZoneId;
   areaName?: string;
   locality?: string;
+  savedCoordinates?: [number, number];
   isGuest?: boolean;
+  joinedDate?: string;
 }
 
 export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  designation?: string;
+  employeeId?: string;
   role: 'Super Admin' | 'Zone Manager' | 'Field Officer';
   assignedZone?: WaterZoneId;
   lastLogin: string;

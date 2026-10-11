@@ -3,6 +3,8 @@ import { TankerBooking, Driver } from '../../types';
 import { storageService } from '../../services/storageService';
 import { LeafletMapView } from '../common/LeafletMapView';
 import { ReceiptModal } from '../common/ReceiptModal';
+import { DeliveryReportModal } from '../common/DeliveryReportModal';
+import { WhatsAppNotificationModal } from '../common/WhatsAppNotificationModal';
 import {
   Truck,
   Phone,
@@ -15,6 +17,9 @@ import {
   Search,
   Navigation,
   ArrowRight,
+  FileText,
+  KeyRound,
+  MessageSquare,
 } from 'lucide-react';
 
 interface TankerTrackerProps {
@@ -32,6 +37,8 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
     initialBookingId || (bookings[0]?.id ?? '')
   );
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [userRating, setUserRating] = useState<number>(0);
 
   // Moving Tanker simulation along route
@@ -241,13 +248,74 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
                 </p>
               </div>
 
-              <button
-                onClick={() => setShowReceipt(true)}
-                className="px-4 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold rounded-xl transition flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4 text-slate-500" />
-                <span>View Receipt & QR</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setShowWhatsApp(true)}
+                  className="px-3 py-2 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                  title="Simulate WhatsApp OTP Notification Dispatched"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>WhatsApp OTP</span>
+                </button>
+                <button
+                  onClick={() => setShowReport(true)}
+                  className="px-3.5 py-2 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                  title="Generate Official MBMC Supply Report"
+                >
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Supply Report</span>
+                </button>
+                <button
+                  onClick={() => setShowReceipt(true)}
+                  className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4 text-slate-500" />
+                  <span>Receipt & QR</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Secure Delivery OTP Box for Citizen */}
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-1 rounded-lg bg-amber-500 text-white">
+                    <KeyRound className="w-4 h-4" />
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                    Your Delivery Handover OTP (एकवेळचा पासवर्ड)
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100">
+                    Confidential
+                  </span>
+                </div>
+                <div className="text-3xl font-mono font-black text-[#ea580c] tracking-widest pl-7">
+                  {activeBooking.deliveryOtp}
+                </div>
+                <p className="text-xs text-amber-800 dark:text-amber-300 pl-7">
+                  Share this OTP with the assigned driver{' '}
+                  <strong className="text-amber-950 dark:text-white">
+                    {activeBooking.assignedDriver?.name || 'Rahul'}
+                  </strong>{' '}
+                  at your doorstep to verify discharge.
+                </p>
+              </div>
+
+              <div className="shrink-0 pl-7 sm:pl-0 sm:text-right">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
+                    activeBooking.otpVerified
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900 dark:text-emerald-100'
+                      : 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900 dark:text-amber-100'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{activeBooking.otpVerified ? 'Handover Verified' : 'OTP Active'}</span>
+                </span>
+                <span className="block text-[10px] text-slate-500 mt-1">
+                  Synced with Driver Handset
+                </span>
+              </div>
             </div>
 
             {/* Live Status Banner */}
@@ -400,6 +468,24 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
             />
           </div>
         </div>
+      )}
+
+      {/* Official Delivery & Audit Report Modal */}
+      {showReport && activeBooking && (
+        <DeliveryReportModal
+          isOpen={showReport}
+          onClose={() => setShowReport(false)}
+          booking={activeBooking}
+        />
+      )}
+
+      {/* WhatsApp OTP Notification Preview Modal */}
+      {showWhatsApp && activeBooking && (
+        <WhatsAppNotificationModal
+          isOpen={showWhatsApp}
+          onClose={() => setShowWhatsApp(false)}
+          booking={activeBooking}
+        />
       )}
     </div>
   );

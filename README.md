@@ -47,11 +47,29 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
   - **Color-Coded Outage Statuses**: 🔴 Red (Emergency Outage), 🟡 Yellow (Planned Maintenance), 🟢 Green (Normal Supply).
 - **Water Tanker Booking System (Custom Features)**:
   - **Strict Date Restriction Logic**: Enforced via JavaScript and date boundaries strictly to **Today or Tomorrow only** (`min={today}` & `max={tomorrow}`).
+  - **🏢 Society Bulk Booking (CHS Mode)**: Cooperative Housing Societies in Mira Road and Bhayandar can book multi-tanker fleet orders (1x to 5x 10,000L = up to 50,000 Liters) with society registration number (`MH/TNA/CHS/...`), underground sump capacity, staggered 1-hour interval dispatch, and 15% subsidized civic rebate.
+  - **💬 WhatsApp & SMS Updates**: Simulated WhatsApp dispatch alert preview showing verified municipal badge, complete logistics details, and highlighted **4-Digit Handover OTP** with copy, audio ping, and web intent links.
   - **9 Daily Time Slots**: 06:00–08:00 through 22:00–23:59 with real-time remaining slot capacity counters.
   - **Capacity Options**: 5,000 Liters, 10,000 Liters (standard), and 15,000 Liters.
   - **Distance-Based Auto Assignment**: Employs the **Haversine formula** to calculate great-circle distances across all 4 MBMC depots (*Kharigaon Central, Sector 4 Mira Rd, Subhash Nagar, Uttan*), selects the nearest available depot, computes transit ETA (`(Dist/30)*1.5 + 0.17` hrs), and plots route polylines.
   - **Digital Receipt Modal**: Official municipal water docket with **scannable SVG QR Code**, printable view, and driver details.
-  - **Live Moving Tanker Tracking**: Real-time moving truck simulation along the delivery route with driver details and call button.
+  - **Live Moving Tanker Tracking**: Real-time moving truck simulation along the delivery route with driver details, OTP verification box, and call button.
+
+- **🌱 Conservation Tips Rotating Daily Widget**:
+  - Embedded on the Citizen Home Dashboard with 10+ actionable daily sustainability practices (e.g., tap aerators, RO reject water reuse, car bucket wash, toilet cistern dye test).
+  - Features real-time **Pledge Counter** with confetti celebration, potential water saved estimation (e.g., `+180 L/day`), category filters, and auto-rotation toggle.
+
+- **📊 Water Meter Self-Reading & Instant Tariff Estimator**:
+  - Citizens snap or upload their water meter dial photo to combat billing disputes.
+  - Simulated optical OCR dial reading with serial number extraction and tamper check.
+  - Calculates net consumption in kL (kiloliters) and estimates monthly municipal water bills according to official MBMC domestic slab tariffs (0-15 kL, 16-30 kL, >30 kL, sewerage cess, meter rent).
+  - Submits reading to MBMC revenue audit registry and generates an official submission certificate.
+
+- **🌐 Multilingual Toggle (English • मराठी • हिंदी)**:
+  - 1-click header switcher dynamically updating portal navigation, slogans, badges, and action labels into English, Marathi, or Hindi with persistent local storage.
+
+- **✨ JalSeva System Initializer Interface**:
+  - Evocative municipal startup sequence featuring concentric SVG water ripples, droplet coalescence into the JalSeva emblem, progress telemetry checkpoints (Surya Dam conduit, 4 zones calibration, GPS fleet sync, chlorination verification), and audio chime feedback with skip and replay controls.
 - **Online Complaint Redressal Desk**:
   - **4-Step Wizard**: Contact details, GPS-assisted area detection, 10 predefined categories (*Low Pressure, No Water, Pipeline Leak, Contaminated Water, Dirty Water, Water Logging, Meter Issue, etc.*) with auto-assigned priority, photo upload with preview, and review screen.
   - Generates unique Docket ID (`CMPYYYYMMDDNNN`) with simulated SMS confirmation.
@@ -195,28 +213,64 @@ npm run build
 
 ---
 
-## 🔑 Demo Access Credentials
+### 🔑 Demo Access Credentials & Roles
 
-The application includes built-in **1-Click Demo Profiles** on each login screen for rapid evaluation:
+The application includes built-in **1-Click Demo Profiles** on each login screen, as well as full custom login support:
 
 ### 👤 Citizen Portal
-- **Sunil Merchant**: `9820544123` (Jesal Park, Bhayandar East — has active In Transit tanker delivery)
-- **Rajesh Kumar**: `9820123456` (Golden Nest, Bhayandar East — has active Low Pressure complaint)
-- **Fatima Shaikh**: `9870188992` (Naya Nagar, Mira Road East — has active Contamination complaint)
-- *Or continue as Guest Resident without sign-in.*
+- **Open Access**: Any citizen resident can log in by entering their Name, 10-digit Mobile Number, Sub-Area, and Residential Address.
+- **Auto GPS Detection**: Pre-fills address and locality automatically from device geolocation.
+- **Preset Citizen Profiles**:
+  - **Sunil Merchant**: `9820544123` (Jesal Park, Bhayandar East — active In Transit tanker delivery)
+  - **Rajesh Kumar**: `9820123456` (Golden Nest, Bhayandar East — active Low Pressure grievance)
+  - **Fatima Shaikh**: `9870188992` (Naya Nagar, Mira Road East — active Contamination grievance)
+  - *Or continue as Guest Resident without login.*
 
 ### 🚚 Tanker Driver Dashboard
-- **Ramesh Kumar**: Vehicle `MH-04-AB-1234` • Kharigaon Central Depot • 10,000L Capacity • ⭐ 4.9
-- **Mahesh Jadhav**: Vehicle `MH-04-CD-5678` • Mira Road Sec 4 Depot • 10,000L Capacity • ⭐ 4.8
-- **Suresh Patil**: Vehicle `MH-04-EF-9012` • Bhayandar West Depot • 15,000L Capacity • ⭐ 4.7
-- **Francis Fernandes**: Vehicle `MH-04-GH-3456` • Uttan Coastal Depot • 5,000L Capacity • ⭐ 5.0
-- *Default PIN: `1234`*
+- **Featured Fleet Driver**:
+  - **Rahul** (Vehicle `MH-04-RH-8821` • Mobile: `9820488312` • Kharigaon Central Depot • 10,000L Capacity • ⭐ 4.9 Rating • License: `MH0420190088214`)
+- **Other Fleet Drivers**:
+  - **Mahesh Jadhav**: Vehicle `MH-04-CD-5678` • Mira Road Sec 4 Depot • 10,000L Capacity
+  - **Suresh Patil**: Vehicle `MH-04-EF-9012` • Bhayandar West Depot • 15,000L Capacity
+  - **Francis Fernandes**: Vehicle `MH-04-GH-3456` • Uttan Coastal Depot • 5,000L Capacity
+- *Default Security PIN: `1234`*
 
 ### 🛡️ MBMC Admin Console
-- **Super Admin**: `superadmin@mbmc.gov.in` (*Er. Ramesh Sawant*, Superintending Engineer)
+- **Super Administrator**:
+  - **Name**: **Adarsh Yadav**
+  - **Designation**: Chief Water Supply Engineer & Super Administrator
+  - **Direct Line**: `7715804452`
+  - **Municipal Email**: `adarsh.yadav@mbmc.gov.in`
+  - **Employee ID**: `MBMC-WTR-001`
 - **Zone Manager**: `zonemanager@mbmc.gov.in` (*Er. Sachin Patil*, Executive Engineer, Zone 1 & 2)
 - **Field Officer**: `fieldofficer@mbmc.gov.in` (*Suresh Patil*, Field Supervisor)
 - *Default Password: `mbmc@2026`*
+
+---
+
+## 🔐 Two-Way Delivery OTP Handover & Audit Flow
+
+A major security and transparency innovation in JalSeva:
+1. **Citizen Books Tanker**: A unique 4-digit Delivery Handover OTP (e.g. `#4829`) is generated and presented immediately to the resident on their booking confirmation screen, live tracker, and SMS docket.
+2. **Admin Assigns Driver**: When Admin Adarsh Yadav assigns a driver (e.g. Driver Rahul) from the dispatch desk, the delivery OTP is transmitted securely to the driver's dispatch queue.
+3. **Driver OTP Verification at Doorstep**: When Driver Rahul reaches the citizen's gate, he requests the 4-digit OTP. Entering the matching code verifies the delivery, stamps the digital handover, triggers celebration confetti, and marks the status as **Delivered**.
+4. **Generated Delivery & Audit Report**: A formal municipal report (*"Certificate of Water Supply & Security Handover"*) is generated with MBMC letterhead, displaying citizen details, fleet vehicle logistics, assigned driver Rahul, and the **VERIFIED OTP Handover Audit timestamp**, signed by Chief Engineer Adarsh Yadav.
+
+---
+
+## 📍 Live Location Detection on Landing Page
+- Located prominently on the portal welcome page.
+- Utilizes browser Geolocation API (`navigator.geolocation.getCurrentPosition`).
+- Employs the Haversine formula to identify the closest sub-area out of MBMC's 79 localities.
+- Shows live municipal ward coverage, today's water supply timetable window, and nearest tanker depot distance.
+- Automatically persists coordinates in browser storage to auto-fill tanker bookings and grievance forms.
+
+---
+
+## 👤 Unified Profile System Across All Dashboards
+- **Citizen Profile**: View/edit resident name, mobile, address, detected coordinates, and see lifetime counts of tanker bookings and complaints.
+- **Driver Profile**: View Driver Rahul's credentials, vehicle registration, base depot, rating (⭐ 4.9), heavy license validity, and daily trip counters.
+- **Admin Profile**: View Super Admin Adarsh Yadav's profile, direct contact `7715804452`, official email, Level 5 security clearance, and municipal authority privileges.
 
 ---
 

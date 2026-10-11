@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 import { JalSevaLogo } from './JalSevaLogo';
+import { CitizenUser } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Calendar,
+  Truck,
   AlertCircle,
   Search,
   Building2,
@@ -11,61 +14,121 @@ import {
   X,
   PhoneCall,
   Home,
-  Wrench,
+  User,
+  Gauge,
+  Droplets,
+  ChevronDown,
+  Layers,
+  Bell,
+  LogIn,
+  UserPlus,
+  LogOut,
 } from 'lucide-react';
+import { NotificationsDrawer } from './NotificationsDrawer';
 
 export type ActiveTab =
   | 'home'
   | 'schedule'
+  | 'tanker-book'
   | 'complaint-file'
   | 'tracker'
+  | 'meter-reading'
   | 'support';
 
 interface NavbarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   onOpenLanding: () => void;
-  onOpenStaff: () => void;
+  onOpenDriver: () => void;
   onOpenAdmin: () => void;
   isAdminLoggedIn?: boolean;
-  isStaffLoggedIn?: boolean;
+  isDriverLoggedIn?: boolean;
+  citizenUser?: CitizenUser | null;
+  onOpenCitizenProfile?: () => void;
+  onOpenSignIn?: () => void;
+  onOpenSignUp?: () => void;
+  onLogoutCitizen?: () => void;
+  onReplayInitializer?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   onOpenLanding,
-  onOpenStaff,
+  onOpenDriver,
   onOpenAdmin,
   isAdminLoggedIn,
-  isStaffLoggedIn,
+  isDriverLoggedIn,
+  citizenUser,
+  onOpenCitizenProfile,
+  onOpenSignIn,
+  onOpenSignUp,
+  onLogoutCitizen,
+  onReplayInitializer,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [portalsDropdownOpen, setPortalsDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+  const moreRef = useRef<HTMLDivElement>(null);
+  const portalsRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
 
-  const navItems = [
-    { id: 'home' as ActiveTab, label: 'Portal Home', icon: Home },
-    { id: 'schedule' as ActiveTab, label: 'Schedule & Outages', icon: Calendar },
-    { id: 'complaint-file' as ActiveTab, label: 'Report Grievance', icon: AlertCircle, highlight: true },
-    { id: 'tracker' as ActiveTab, label: 'Track Redressal', icon: Search },
-    { id: 'support' as ActiveTab, label: 'Ward Directory', icon: Building2 },
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setMoreDropdownOpen(false);
+      }
+      if (portalsRef.current && !portalsRef.current.contains(event.target as Node)) {
+        setPortalsDropdownOpen(false);
+      }
+      if (userRef.current && !userRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const primaryNavItems = [
+    { id: 'home' as ActiveTab, label: t.navHome, icon: Home },
+    { id: 'tanker-book' as ActiveTab, label: t.navBookTanker, icon: Truck, highlight: true },
+    { id: 'schedule' as ActiveTab, label: t.navSchedule, icon: Calendar },
   ];
 
+  const secondaryNavItems = [
+    { id: 'meter-reading' as ActiveTab, label: t.navMeterReading, icon: Gauge },
+    { id: 'complaint-file' as ActiveTab, label: t.navReportGrievance, icon: AlertCircle },
+    { id: 'tracker' as ActiveTab, label: t.navTrackStatus, icon: Search },
+    { id: 'support' as ActiveTab, label: t.navWardDirectory, icon: Building2 },
+  ];
+
+  const isSecondaryActive = secondaryNavItems.some((item) => item.id === activeTab);
+
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo & MBMC Branding: JalSeva */}
           <div
             onClick={onOpenLanding}
-            className="cursor-pointer"
+            className="cursor-pointer flex-shrink-0"
             title="Click to visit JalSeva Landing Page"
           >
-            <JalSevaLogo size="md" />
+            <div className="hidden sm:block">
+              <JalSevaLogo size="md" />
+            </div>
+            <div className="sm:hidden">
+              <JalSevaLogo size="sm" showSubtitle={false} />
+            </div>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-1.5">
-            {navItems.map((item) => {
+          {/* Desktop Navigation Links (Primary + More Dropdown) */}
+          <nav className="hidden lg:flex items-center gap-1.5">
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
@@ -76,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     isActive
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                       : item.highlight
-                      ? 'text-[#ea580c] dark:text-amber-400 hover:bg-orange-50 dark:hover:bg-amber-950/40'
+                      ? 'text-[#ea580c] dark:text-amber-400 bg-orange-50/80 dark:bg-amber-950/40 hover:bg-orange-100 border border-orange-200/60 dark:border-orange-800/60 font-bold'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
@@ -93,50 +156,256 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               );
             })}
+
+            {/* Secondary "More" Dropdown Menu */}
+            <div className="relative" ref={moreRef}>
+              <button
+                onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  isSecondaryActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span>More Services</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {moreDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    Citizen Services
+                  </div>
+                  {secondaryNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setMoreDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-medium text-left transition ${
+                          isActive
+                            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
 
-          {/* Right Action Icons & Role Gateways */}
+          {/* Right Action Utilities & Module Gateways */}
           <div className="flex items-center gap-2">
+            {/* Multilingual Selector: EN | मराठी | हिंदी */}
+            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1 rounded-lg transition text-[11px] ${
+                  language === 'en'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLanguage('mr')}
+                className={`px-2 py-1 rounded-lg transition text-[11px] font-hindi ${
+                  language === 'mr'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="मराठी (Marathi)"
+              >
+                मराठी
+              </button>
+              <button
+                onClick={() => setLanguage('hi')}
+                className={`px-2 py-1 rounded-lg transition text-[11px] font-hindi ${
+                  language === 'hi'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="हिंदी (Hindi)"
+              >
+                हिंदी
+              </button>
+            </div>
+
+            {/* Replay Initializer / Telemetry Button */}
+            {onReplayInitializer && (
+              <button
+                onClick={onReplayInitializer}
+                className="hidden xl:flex p-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-800 transition"
+                title="Replay JalSeva Startup Initializer Animation"
+              >
+                <Droplets className="w-4 h-4 animate-pulse" />
+              </button>
+            )}
+
             {/* 24x7 Helpline Pill */}
             <a
               href="tel:1800222026"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 transition"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 transition"
               title="24x7 JalSeva Water Emergency Helpline"
             >
               <PhoneCall className="w-3.5 h-3.5 text-[#fd7e14] animate-bounce" />
               <span>1800-22-2026</span>
             </a>
 
-            {/* Field Staff Portal Button */}
+            {/* Automated Alerts & Push Notifications Bell */}
             <button
-              onClick={onOpenStaff}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm border ${
-                isStaffLoggedIn
-                  ? 'bg-[#ea580c] hover:bg-[#c2410c] text-white border-orange-500'
-                  : 'bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/50 text-[#ea580c] dark:text-amber-300 border-orange-200 dark:border-orange-800'
-              }`}
-              title="Login as Municipal Field Plumber / Inspector"
+              onClick={() => setNotificationsOpen(true)}
+              className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="View Water Supply & Tanker Notifications"
+              aria-label="Alerts and Notifications"
             >
-              <Wrench className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Field Staff</span>
+              <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+              <span className="absolute top-1 right-1 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
             </button>
 
-            {/* Admin Portal Gateway Button */}
-            <button
-              onClick={onOpenAdmin}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm border ${
-                isAdminLoggedIn
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-700'
-              }`}
-              title="Open Official MBMC Administration Control Panel"
-            >
-              <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Admin Desk</span>
-              {isAdminLoggedIn && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            {/* Modules Dropdown (Driver & Admin) for Clean Header Decluttering */}
+            <div className="relative hidden md:block" ref={portalsRef}>
+              <button
+                onClick={() => setPortalsDropdownOpen(!portalsDropdownOpen)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-700 transition shadow-sm"
+                title="Switch Portals (Driver & Admin)"
+              >
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Portals</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${portalsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {portalsDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Official Modules
+                  </div>
+                  <button
+                    onClick={() => {
+                      onOpenDriver();
+                      setPortalsDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 transition text-left"
+                  >
+                    <Truck className="w-4 h-4" />
+                    <span>Driver Portal {isDriverLoggedIn && '(Active)'}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onOpenAdmin();
+                      setPortalsDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition text-left border-t border-slate-100 dark:border-slate-800"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Admin Desk {isAdminLoggedIn && '(Online)'}</span>
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
+
+            {/* Citizen Authentication & Account Gateway: Single unified Sign In / Sign Up button */}
+            {!citizenUser ? (
+              <button
+                onClick={onOpenSignIn || onOpenSignUp}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 transition shadow-xs shadow-blue-500/20 cursor-pointer shrink-0"
+                title="Sign In or Register new Citizen account"
+              >
+                <LogIn className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden xs:inline whitespace-nowrap">{t.signInOrSignUp}</span>
+                <span className="xs:hidden whitespace-nowrap">Sign In</span>
+              </button>
+            ) : (
+              /* Authenticated Resident User Dropdown */
+              <div className="relative" ref={userRef}>
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition shadow-xs cursor-pointer"
+                  title={`Logged in as ${citizenUser.name}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                    {citizenUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="max-w-[70px] sm:max-w-[100px] truncate text-[11px] sm:text-xs">
+                    {citizenUser.name.split(' ')[0]}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-60 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 py-2.5 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-3.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
+                          {citizenUser.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {citizenUser.name}
+                          </p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                            +91 {citizenUser.phone} {citizenUser.areaName ? `• ${citizenUser.areaName}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-1.5">
+                      {onOpenCitizenProfile && (
+                        <button
+                          onClick={() => {
+                            onOpenCitizenProfile();
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left cursor-pointer"
+                        >
+                          <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <span>{t.myProfile}</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setActiveTab('tracker');
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left cursor-pointer"
+                      >
+                        <Search className="w-3.5 h-3.5 text-amber-500" />
+                        <span>My Bookings &amp; Grievances</span>
+                      </button>
+
+                      {onLogoutCitizen && (
+                        <button
+                          onClick={() => {
+                            onLogoutCitizen();
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition text-left border-t border-slate-100 dark:border-slate-800 mt-1 pt-2 cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>{t.signOut}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Dark & Light Theme Switcher */}
             <ThemeToggle />
@@ -144,7 +413,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label="Open navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -153,10 +422,31 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu: Fixed full height overlay with smooth scrolling */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-2 shadow-xl animate-in fade-in">
-          <div className="text-xs font-semibold text-slate-500 px-3 uppercase tracking-wider flex items-center justify-between">
+        <div className="fixed lg:hidden inset-x-0 top-20 bottom-0 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-4 pt-4 pb-24 space-y-2.5 shadow-2xl z-50 overflow-y-auto animate-in fade-in">
+          {/* Mobile Language Selector */}
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 mb-1">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">भाषा / Language:</span>
+            <div className="flex items-center gap-1">
+              {(['en', 'mr', 'hi'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setLanguage(lang)}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+                    language === lang
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {lang === 'en' ? 'EN' : lang === 'mr' ? 'मराठी' : 'हिंदी'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-xs font-semibold text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
             <span>Citizen Navigation • जलसेवा</span>
             <button
               onClick={() => {
@@ -169,7 +459,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {navItems.map((item) => {
+          {[...primaryNavItems, ...secondaryNavItems].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
@@ -182,6 +472,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
                   isActive
                     ? 'bg-blue-600 text-white'
+                    : item.id === 'tanker-book'
+                    ? 'bg-orange-50 dark:bg-orange-950/50 text-[#ea580c] font-bold'
                     : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
@@ -192,15 +484,82 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+            {/* Citizen Account Management in Mobile Menu */}
+            {!citizenUser ? (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span>{t.citizenAccount} • नागरिक</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md font-semibold">
+                    GPS Ready
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    (onOpenSignIn || onOpenSignUp)?.();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/25"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{t.signInOrSignUp}</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      {citizenUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {citizenUser.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">+91 {citizenUser.phone}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold px-1.5 py-0.5 rounded-md">
+                    Active
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {onOpenCitizenProfile && (
+                    <button
+                      onClick={() => {
+                        onOpenCitizenProfile();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-blue-600 dark:text-blue-400"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>{t.myProfile}</span>
+                    </button>
+                  )}
+                  {onLogoutCitizen && (
+                    <button
+                      onClick={() => {
+                        onLogoutCitizen();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 dark:text-rose-400"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>{t.signOut}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => {
-                onOpenStaff();
+                onOpenDriver();
                 setMobileMenuOpen(false);
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-100 dark:bg-orange-950 text-[#ea580c] dark:text-amber-300 font-bold text-xs"
             >
-              <Wrench className="w-4 h-4" />
-              <span>Login as Field Staff / Plumber</span>
+              <Truck className="w-4 h-4" />
+              <span>Login as Tanker Driver</span>
             </button>
 
             <button
@@ -213,9 +572,29 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Shield className="w-4 h-4 text-emerald-400" />
               <span>Switch to MBMC Admin Desk</span>
             </button>
+
+            <button
+              onClick={() => {
+                setNotificationsOpen(true);
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold text-xs"
+            >
+              <Bell className="w-4 h-4 text-blue-600" />
+              <span>Live Water Supply & Tanker Alerts</span>
+            </button>
           </div>
         </div>
       )}
+
+      {/* Automated SMS & FCM Push Notification Drawer */}
+      <NotificationsDrawer
+        isOpen={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+        onSelectBooking={() => {
+          setActiveTab('tracker');
+        }}
+      />
     </header>
   );
 };

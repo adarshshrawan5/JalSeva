@@ -39,8 +39,8 @@ export const AdminScheduleManager: React.FC<AdminScheduleManagerProps> = ({
     if (z) {
       setMorningStart(z.supplyWindows.morning.start);
       setMorningEnd(z.supplyWindows.morning.end);
-      setEveningStart(z.supplyWindows.evening.start);
-      setEveningEnd(z.supplyWindows.evening.end);
+      setEveningStart(z.supplyWindows.evening ? z.supplyWindows.evening.start : '');
+      setEveningEnd(z.supplyWindows.evening ? z.supplyWindows.evening.end : '');
       setFrequency(z.supplyWindows.frequency);
       setPressure(z.supplyWindows.pressure);
     }
@@ -129,7 +129,7 @@ export const AdminScheduleManager: React.FC<AdminScheduleManagerProps> = ({
                       Morning: <strong>{zone.supplyWindows.morning.start} - {zone.supplyWindows.morning.end}</strong>
                     </div>
                     <div>
-                      Evening: <strong>{zone.supplyWindows.evening.start} - {zone.supplyWindows.evening.end}</strong>
+                      Evening: <strong>{zone.supplyWindows.evening ? `${zone.supplyWindows.evening.start} - ${zone.supplyWindows.evening.end}` : 'None (Morning Only)'}</strong>
                     </div>
                   </div>
                 </button>
