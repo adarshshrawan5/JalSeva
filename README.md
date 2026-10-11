@@ -10,8 +10,22 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF.svg)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC.svg)](https://tailwindcss.com/)
+[![Recharts](https://img.shields.io/badge/Recharts-3.x-22c55e.svg)](https://recharts.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-OpenStreetMap-199900.svg)](https://leafletjs.com/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+---
+
+## 🔗 Official Links & Deployments
+
+- 🌐 **Live Application (Production / Shared Preview)**:  
+  [https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app)
+- 🛠️ **Development App URL**:  
+  [https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app)
+- 🐙 **GitHub Repository**:  
+  [https://github.com/adarshshrawan5/jalseva-mbmc](https://github.com/adarshshrawan5/jalseva-mbmc)
+- 👤 **Maintainer / Lead Engineer**:  
+  **Adarsh Yadav** (`adarshshrawan5@gmail.com` • `MBMC-WTR-001`)
 
 ---
 
@@ -20,15 +34,50 @@
 **JalSeva (जलसेवा)** is a full-stack digital municipal bridge connecting **809,378 residents** of Mira-Bhayandar with municipal water supply authorities, field engineers, and emergency tanker drivers.
 
 The platform provides a unified **Gateway Landing Page** routing users into three dedicated operational dashboards:
-1. 👤 **Citizen Dashboard**: Real-time water supply schedules across 79 localities, strict Today/Tomorrow emergency tanker booking with live GPS tracking, online complaint redressal with 48h SLA, and interactive ward directory.
-2. 🚚 **Tanker Driver Dashboard**: Assigned trip queues, turn-by-turn route navigation from depot to citizen address, direct citizen call integration, and 1-tap *"In Transit"* & *"Delivered"* trip completion.
+1. 👤 **Citizen Dashboard**: Real-time water supply schedules across 79 localities, strict Today/Tomorrow emergency tanker booking with live GPS tracking, Recharts consumption trends, online complaint redressal with 48h SLA, and interactive ward directory.
+2. 🚚 **Tanker Driver Dashboard**: Assigned trip queues, turn-by-turn route navigation from depot to citizen address, direct citizen call integration, and 1-tap *"In Transit"* & *"Delivered"* trip completion with 4-digit handover OTP validation.
 3. 🛡️ **MBMC Admin Command Console**: Emergency outage broadcast manager with push/SMS simulation, zone timetable grid with batch updates and audit trails, master grievance desk with plumber dispatch, and a live Kanban tanker dispatch board.
 
 ---
 
 ## 🚀 Core Modules & Capabilities
 
-### 1. 🌐 Public Landing Page & Role Gateway
+### 1. 📊 Recharts-Based Water Consumption & Meter Analytics Dashboard
+- **Monthly Usage Trends (kL & Liters)**:
+  - Interactive `AreaChart` with smooth gradient fill and live hover tooltips displaying monthly kiloliters (kL) and equivalent liters.
+  - Reference lines indicating MBMC statutory tariff thresholds:
+    - **Slab 1 Limit (15 kL)**: Subsidized lifeline domestic quota (@ ₹6.50/kL).
+    - **Slab 2 Cap (30 kL)**: Standard residential consumption tier (@ ₹10.00/kL).
+- **Official MBMC Telescopic Tariff Breakdown**:
+  - `BarChart` displaying assessed municipal bills according to municipal tariff guidelines:
+    - **Slab 1 (0–15 kL)**: ₹6.50 / kL
+    - **Slab 2 (16–30 kL)**: ₹10.00 / kL
+    - **Slab 3 (>30 kL)**: ₹16.00 / kL
+    - **Sewerage Cess**: 20% on water charges
+    - **Meter Service Rent**: ₹40.00 fixed
+- **Executive Telemetry & Benchmarking Cards**:
+  - Latest month usage with month-over-month trend indicator (+/- %).
+  - Estimated water bill with itemized sewerage cess and meter rent.
+  - Per-capita daily consumption (LPCD) benchmarked against the CPHEEO urban standard (135 LPCD for a 5-member family).
+  - Tariff slab efficiency tracker showing headroom before higher penalties.
+- **Logged Meter Reading Audit Trail**:
+  - Historical table displaying monthly cycles, previous vs. current dial numbers, net kL, billing status, and an itemized breakdown modal for each docket.
+  - Synchronized with `storageService` so any new optical dial reading logged via the Self-Meter Reader immediately reflects across all charts.
+- **Embedded in Citizen Home & Profile Modal**:
+  - Accessible on `CitizenHome` with quick-access CTA in the hero banner.
+  - Integrated into `ProfileModal` with sub-tabs for Resident Profile and Water Usage & Analytics.
+
+---
+
+### 2. 🔐 Unified Sign-Up & Sign-In Navigation
+- **Consolidated Entry Point**: Single, high-performance modal replacing cluttered multi-button header layouts.
+- **Tabbed Interface**: Seamless toggle between **Log In** and **Create Account** in one dialog.
+- **One-Click Resident Presets**: Fast demo access (*Sunil Merchant, Rajesh Kumar, Fatima Shaikh*) with simulated OTP verification and GPS auto-fill.
+- **Mobile Optimized**: Designed to fit mobile screens with virtual keyboards without clipping or layout jumps.
+
+---
+
+### 3. 🌐 Public Landing Page & Role Gateway
 - **Multi-Role Entry Point**: Direct 1-click access to **Citizen Portal**, **Driver Dashboard**, and **Admin Console**.
 - **Live Emergency Outage Ticker**: Real-time scrolling banner highlighting active pipeline breaks, repair timelines, and alternative arrangements.
 - **City Telemetry Dashboard**: Real-time indicators showing **142.5 MLD** supplied from Surya & MIDC Jambhul sources, active complaints, completed tanker trips, and citizens served.
@@ -37,7 +86,7 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
 
 ---
 
-### 2. 👤 Citizen Portal
+### 4. 👤 Citizen Portal
 - **Area-Wise Schedule & Outage Tracker**:
   - Covers **4 Municipal Zones** across **79 sub-areas** and distinct localities.
   - **3-Level Hierarchy Navigation**: Zone → Sub-Area → Locality.
@@ -46,30 +95,23 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
   - **📍 Live Location Detection**: Uses browser Geolocation API to auto-detect citizen GPS coordinates, compute nearest municipal area/zone, display accuracy indicators (e.g. `±45m`), and center the interactive OpenStreetMap.
   - **Color-Coded Outage Statuses**: 🔴 Red (Emergency Outage), 🟡 Yellow (Planned Maintenance), 🟢 Green (Normal Supply).
 - **Water Tanker Booking System (Custom Features)**:
-  - **Strict Date Restriction Logic**: Enforced via JavaScript and date boundaries strictly to **Today or Tomorrow only** (`min={today}` & `max={tomorrow}`).
-  - **🏢 Society Bulk Booking (CHS Mode)**: Cooperative Housing Societies in Mira Road and Bhayandar can book multi-tanker fleet orders (1x to 5x 10,000L = up to 50,000 Liters) with society registration number (`MH/TNA/CHS/...`), underground sump capacity, staggered 1-hour interval dispatch, and 15% subsidized civic rebate.
+  - **Strict Date Restriction Logic**: Enforced strictly to **Today or Tomorrow only** (`min={today}` & `max={tomorrow}`).
+  - **🏢 Society Bulk Booking (CHS Mode)**: Cooperative Housing Societies can book multi-tanker fleet orders (1x to 5x 10,000L = up to 50,000 Liters) with society registration number (`MH/TNA/CHS/...`), underground sump capacity, staggered 1-hour interval dispatch, and 15% subsidized civic rebate.
   - **💬 WhatsApp & SMS Updates**: Simulated WhatsApp dispatch alert preview showing verified municipal badge, complete logistics details, and highlighted **4-Digit Handover OTP** with copy, audio ping, and web intent links.
   - **9 Daily Time Slots**: 06:00–08:00 through 22:00–23:59 with real-time remaining slot capacity counters.
   - **Capacity Options**: 5,000 Liters, 10,000 Liters (standard), and 15,000 Liters.
-  - **Distance-Based Auto Assignment**: Employs the **Haversine formula** to calculate great-circle distances across all 4 MBMC depots (*Kharigaon Central, Sector 4 Mira Rd, Subhash Nagar, Uttan*), selects the nearest available depot, computes transit ETA (`(Dist/30)*1.5 + 0.17` hrs), and plots route polylines.
+  - **Distance-Based Auto Assignment**: Employs the **Haversine formula** to calculate great-circle distances across all 4 MBMC depots (*Kharigaon Central, Sector 4 Mira Rd, Subhash Nagar, Uttan*), selects the nearest available depot, computes transit ETA, and plots route polylines.
   - **Digital Receipt Modal**: Official municipal water docket with **scannable SVG QR Code**, printable view, and driver details.
   - **Live Moving Tanker Tracking**: Real-time moving truck simulation along the delivery route with driver details, OTP verification box, and call button.
-
 - **🌱 Conservation Tips Rotating Daily Widget**:
-  - Embedded on the Citizen Home Dashboard with 10+ actionable daily sustainability practices (e.g., tap aerators, RO reject water reuse, car bucket wash, toilet cistern dye test).
+  - Embedded on the Citizen Home Dashboard with 10+ actionable daily sustainability practices.
   - Features real-time **Pledge Counter** with confetti celebration, potential water saved estimation (e.g., `+180 L/day`), category filters, and auto-rotation toggle.
-
 - **📊 Water Meter Self-Reading & Instant Tariff Estimator**:
-  - Citizens snap or upload their water meter dial photo to combat billing disputes.
-  - Simulated optical OCR dial reading with serial number extraction and tamper check.
-  - Calculates net consumption in kL (kiloliters) and estimates monthly municipal water bills according to official MBMC domestic slab tariffs (0-15 kL, 16-30 kL, >30 kL, sewerage cess, meter rent).
-  - Submits reading to MBMC revenue audit registry and generates an official submission certificate.
-
+  - Optical odometer dial simulation with serial number extraction and tamper check.
+  - Calculates net consumption in kL and estimates bills according to official MBMC domestic slab tariffs.
+  - Generates official submission certificates and automatically updates the consumption dashboard.
 - **🌐 Multilingual Toggle (English • मराठी • हिंदी)**:
-  - 1-click header switcher dynamically updating portal navigation, slogans, badges, and action labels into English, Marathi, or Hindi with persistent local storage.
-
-- **✨ JalSeva System Initializer Interface**:
-  - Evocative municipal startup sequence featuring concentric SVG water ripples, droplet coalescence into the JalSeva emblem, progress telemetry checkpoints (Surya Dam conduit, 4 zones calibration, GPS fleet sync, chlorination verification), and audio chime feedback with skip and replay controls.
+  - Header switcher dynamically updating portal navigation, slogans, badges, and action labels into English, Marathi, or Hindi with persistent local storage.
 - **Online Complaint Redressal Desk**:
   - **4-Step Wizard**: Contact details, GPS-assisted area detection, 10 predefined categories (*Low Pressure, No Water, Pipeline Leak, Contaminated Water, Dirty Water, Water Logging, Meter Issue, etc.*) with auto-assigned priority, photo upload with preview, and review screen.
   - Generates unique Docket ID (`CMPYYYYMMDDNNN`) with simulated SMS confirmation.
@@ -78,30 +120,30 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
 
 ---
 
-### 3. 🚚 Tanker Driver Dashboard
-- **Authorized Driver Profiles**: Quick 1-click driver presets (*Ramesh Kumar, Mahesh Jadhav, Suresh Patil, Francis Fernandes*) or sign-in via vehicle registration number + 4-digit security PIN.
+### 5. 🚚 Tanker Driver Dashboard
+- **Authorized Driver Profiles**: Quick 1-click driver presets (*Rahul, Mahesh Jadhav, Suresh Patil, Francis Fernandes*) or sign-in via vehicle registration number + 4-digit security PIN.
 - **Active Trip Showcase**: Real-time card showing delivery recipient name, mobile number (click-to-call `tel:` link), complete address, landmark, and requested volume.
 - **Turn-by-turn Navigation Map**: Interactive Leaflet route map showing origin depot, live tanker position, and citizen destination.
 - **Trip Status Controls**:
   - 🚀 **"Start Navigation / Mark In Transit"**: Updates booking status in real-time, activating the moving truck icon on the citizen's live tracking screen.
-  - ✅ **"Confirm Water Delivered"**: Completes trip, updates driver delivery counters, and records delivery timestamp.
+  - ✅ **"Confirm Water Delivered"**: Completes trip, updates driver delivery counters, and records delivery timestamp after OTP verification.
 - **Trip Queue & History**: Review upcoming scheduled deliveries for today and tomorrow.
 
 ---
 
-### 4. 🛡️ MBMC Admin Command Center
-- **Role-Based Access Control**: Presets for **Super Admin** (*Er. Ramesh Sawant*), **Zone Manager** (*Er. Sachin Patil*), and **Field Officer** (*Suresh Patil*).
+### 6. 🛡️ MBMC Admin Command Center
+- **Role-Based Access Control**: Presets for **Super Admin** (*Adarsh Yadav*), **Zone Manager** (*Er. Sachin Patil*), and **Field Officer** (*Suresh Patil*).
 - **Operations Dashboard**: 6 key metric counters, zone load distribution bar charts, and live activity stream.
 - **Broadcast & Outage Manager**: Create and publish emergency pipeline burst notices or planned maintenance with multi-zone selection, start/end datetimes, priority levels, live ticker sync, and instant push/SMS broadcast simulator.
 - **Schedule Manager**: Zone-by-zone timetable configuration with 15-minute intervals, **Batch Update ("Apply to All Zones")**, and immutable audit log.
-- **Complaint Resolution Desk**: Master table with multi-filters, detail inspection modal, field plumber assignment with active workload metrics, status transition workflow (*Pending → Assigned → In Progress → Resolved* with mandatory resolution notes), and CSV export.
+- **Complaint Resolution Desk**: Master table with multi-filters, detail inspection modal, field plumber assignment with active workload metrics, status transition workflow, and CSV export.
 - **Tanker Dispatch Manager**: Dual view switcher (**Table Log** vs **Kanban Board**: *Pending Approval → Approved → In Transit → Delivered*), driver vehicle assignment modal, and delivery confirmation.
 - **Reports & Analytics**: Visual charts for grievances by category, zone volume, tanker fleet utilization (86%), and response times.
 - **Staff & Drivers**: Directory of certified field plumbers, tanker drivers, and depot managers.
 
 ---
 
-### 5. 🌓 Theme System (Dark & Light Mode)
+### 7. 🌓 Theme System (Dark & Light Mode)
 - Seamless switcher in the top navigation bar.
 - Persisted in `localStorage`.
 - High contrast, WCAG AA compliant colors, optimized for low-light night-time usage.
@@ -116,6 +158,7 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
 | **Build Tool** | Vite 8 + ESBuild |
 | **Language** | TypeScript (Strict typing across entities) |
 | **Styling** | Tailwind CSS v4 (`@custom-variant dark`) |
+| **Data Visualizations** | Recharts 3.x (`AreaChart`, `BarChart`, `ResponsiveContainer`, `Tooltip`) |
 | **Maps & GIS** | Leaflet.js 1.9 + OpenStreetMap tiles + Custom SVG Markers |
 | **State & Persistence** | React Reactive State + Custom LocalStorage StorageService with Cross-Tab Event Dispatch |
 | **Icons & Visuals** | Lucide React + Canvas Confetti |
@@ -127,57 +170,61 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
 
 ```
 ├── .env.example
-├── index.html                  # HTML entry point with JalSeva meta tags & Leaflet CSS
-├── metadata.json               # Applet capabilities & permissions
+├── index.html                        # HTML entry point with JalSeva meta tags & Leaflet CSS
+├── metadata.json                     # Applet capabilities & permissions
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
+├── README.md                         # Project documentation & GitHub instructions
 ├── src/
-│   ├── main.tsx                # React root bootstrap
-│   ├── App.tsx                 # Core application controller & multi-role view routing
-│   ├── index.css               # Tailwind CSS v4 configuration & theme transitions
+│   ├── main.tsx                      # React root bootstrap
+│   ├── App.tsx                       # Core application controller & multi-role view routing
+│   ├── index.css                     # Tailwind CSS v4 configuration & theme transitions
 │   ├── types/
-│   │   └── index.ts            # Data models (Zones, Areas, Complaints, Tankers, Drivers, Depots)
+│   │   └── index.ts                  # Data models (Zones, Areas, Complaints, Tankers, MeterReadings)
 │   ├── data/
-│   │   └── mbmcData.ts         # Authentic MBMC dataset (4 zones, 79 areas, 4 depots, staff)
+│   │   └── mbmcData.ts               # Authentic MBMC dataset (4 zones, 79 areas, 4 depots, initial meter logs)
 │   ├── services/
-│   │   ├── storageService.ts   # Persistent reactive storage & strict date validations
-│   │   └── distanceService.ts  # Haversine distance, ETA, and depot auto-routing
+│   │   ├── storageService.ts         # Persistent reactive storage, meter readings & audit logs
+│   │   └── distanceService.ts        # Haversine distance, ETA, and depot auto-routing
 │   ├── context/
-│   │   └── ThemeContext.tsx    # Persistent Dark / Light theme provider
+│   │   ├── ThemeContext.tsx          # Persistent Dark / Light theme provider
+│   │   └── LanguageContext.tsx       # Multilingual provider (English, Marathi, Hindi)
 │   └── components/
 │       ├── common/
 │       │   ├── JalSevaLogo.tsx       # Brand logo (💧 Blue Drop + 🤝 Orange Service Hand)
-│       │   ├── Navbar.tsx            # Main top navigation with portal gateways
-│       │   ├── Footer.tsx            # Municipal footer with 24x7 emergency contacts
+│       │   ├── Navbar.tsx            # Main top navigation with GitHub link & portal gateways
+│       │   ├── Footer.tsx            # Municipal footer with GitHub repo & live app links
 │       │   ├── ThemeToggle.tsx       # Smooth Moon / Sun toggle
 │       │   ├── AlertTicker.tsx       # Live emergency outage marquee banner
 │       │   ├── Modal.tsx             # Reusable accessible dialog modal
 │       │   ├── LeafletMapView.tsx    # Interactive Leaflet map with custom HTML markers
 │       │   ├── ReceiptModal.tsx      # Official municipal receipt with SVG QR code
+│       │   ├── ProfileModal.tsx      # Profile modal with embedded Water Usage Analytics
 │       │   └── MainLandingPage.tsx   # Welcome landing page with 3 role login cards
 │       ├── citizen/
-│       │   ├── CitizenLogin.tsx      # 1-click resident sign-in & mobile login
-│       │   ├── CitizenHome.tsx       # Citizen home dashboard with quick access cards
-│       │   ├── ScheduleTracker.tsx   # 4-zone schedule, countdown timer & GPS auto-detect
-│       │   ├── ComplaintForm.tsx     # 4-step grievance registration wizard
-│       │   ├── ComplaintTracker.tsx  # Docket search & visual status journey
-│       │   ├── TankerBookingForm.tsx # Strict Today/Tomorrow tanker booking with maps
-│       │   ├── TankerTracker.tsx     # Live GPS moving tanker tracking
-│       │   └── SupportSection.tsx    # Ward office directory & FAQ accordion
+│       │   ├── CitizenLogin.tsx            # 1-click resident sign-in & mobile login
+│       │   ├── CitizenHome.tsx             # Citizen home dashboard with consumption chart & quick access
+│       │   ├── WaterConsumptionDashboard.tsx # Recharts monthly usage, telescopic tariff & logs
+│       │   ├── WaterMeterReader.tsx        # Optical dial self-reading & instant bill calculation
+│       │   ├── ScheduleTracker.tsx         # 4-zone schedule, countdown timer & GPS auto-detect
+│       │   ├── ComplaintForm.tsx           # 4-step grievance registration wizard
+│       │   ├── ComplaintTracker.tsx        # Docket search & visual status journey
+│       │   ├── TankerBookingForm.tsx       # Strict Today/Tomorrow tanker booking with maps
+│       │   ├── TankerTracker.tsx           # Live GPS moving tanker tracking
+│       │   └── SupportSection.tsx          # Ward office directory & FAQ accordion
 │       ├── driver/
-│       │   ├── DriverLogin.tsx       # 1-click vehicle login for fleet drivers
-│       │   └── DriverDashboard.tsx   # Active trip navigation, call citizen & delivery confirmation
+│       │   ├── DriverLogin.tsx             # 1-click vehicle login for fleet drivers
+│       │   └── DriverDashboard.tsx         # Active trip navigation, call citizen & delivery confirmation
 │       └── admin/
-│           ├── AdminLogin.tsx            # 1-click administrative role sign-in
-│           ├── AdminLayout.tsx           # Administrative dashboard layout & sidebar
-│           ├── AdminDashboardHome.tsx    # Operations KPI counters & zone load distribution
-│           ├── AdminBroadcastManager.tsx # Outage notice publisher & push/SMS simulator
-│           ├── AdminScheduleManager.tsx  # Timetable grid editor with batch update
-│           ├── AdminComplaintsDesk.tsx   # Master grievance table & field plumber assignment
-│           ├── AdminTankerManager.tsx    # Tanker dispatch Kanban board & driver assignment
-│           ├── AdminAnalytics.tsx        # Charts & telemetry reports
-│           └── AdminStaffManager.tsx     # Staff & driver directory
+│           ├── AdminLogin.tsx              # 1-click administrative role sign-in
+│           ├── AdminLayout.tsx             # Administrative dashboard layout & sidebar
+│           ├── AdminDashboardHome.tsx      # Operations KPI counters & zone load distribution
+│           ├── AdminBroadcastManager.tsx   # Outage notice publisher & push/SMS simulator
+│           ├── AdminScheduleManager.tsx    # Timetable grid editor with batch update
+│           ├── AdminComplaintsDesk.tsx     # Master grievance table & field plumber assignment
+│           ├── AdminTankerManager.tsx      # Tanker dispatch Kanban board & driver assignment
+│           └── AdminStaffManager.tsx       # Staff & driver directory
 ```
 
 ---
@@ -187,11 +234,12 @@ The platform provides a unified **Gateway Landing Page** routing users into thre
 ### 1. Prerequisites
 - Node.js (v18.0.0 or higher)
 - npm (v9.0.0 or higher)
+- Git (v2.x or higher)
 
 ### 2. Clone & Install
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/jalseva-mbmc.git
+git clone https://github.com/adarshshrawan5/jalseva-mbmc.git
 
 # Navigate into the project directory
 cd jalseva-mbmc
@@ -213,7 +261,41 @@ npm run build
 
 ---
 
-### 🔑 Demo Access Credentials & Roles
+## 🚀 Pushing to Your GitHub Account
+
+To push this repository to your personal GitHub account (`adarshshrawan5`):
+
+### Step 1: Create a Repository on GitHub
+1. Go to [https://github.com/new](https://github.com/new).
+2. Set **Repository name** to: `jalseva-mbmc`.
+3. Choose **Public** (or **Private**).
+4. Leave *"Initialize this repository with a README"* unchecked.
+5. Click **Create repository**.
+
+### Step 2: Push Local Code to GitHub
+Run the following commands in your terminal:
+
+```bash
+# 1. Initialize git (if not already done)
+git init
+git branch -M main
+
+# 2. Add remote origin
+git remote add origin https://github.com/adarshshrawan5/jalseva-mbmc.git
+
+# 3. Stage and commit all files
+git add .
+git commit -m "feat: complete JalSeva digital water supply management portal with Recharts dashboard"
+
+# 4. Push to GitHub
+git push -u origin main
+```
+
+*(If prompted for credentials, use your GitHub username `adarshshrawan5` and your Personal Access Token [PAT] as the password).*
+
+---
+
+## 🔑 Demo Access Credentials & Roles
 
 The application includes built-in **1-Click Demo Profiles** on each login screen, as well as full custom login support:
 
@@ -245,32 +327,6 @@ The application includes built-in **1-Click Demo Profiles** on each login screen
 - **Zone Manager**: `zonemanager@mbmc.gov.in` (*Er. Sachin Patil*, Executive Engineer, Zone 1 & 2)
 - **Field Officer**: `fieldofficer@mbmc.gov.in` (*Suresh Patil*, Field Supervisor)
 - *Default Password: `mbmc@2026`*
-
----
-
-## 🔐 Two-Way Delivery OTP Handover & Audit Flow
-
-A major security and transparency innovation in JalSeva:
-1. **Citizen Books Tanker**: A unique 4-digit Delivery Handover OTP (e.g. `#4829`) is generated and presented immediately to the resident on their booking confirmation screen, live tracker, and SMS docket.
-2. **Admin Assigns Driver**: When Admin Adarsh Yadav assigns a driver (e.g. Driver Rahul) from the dispatch desk, the delivery OTP is transmitted securely to the driver's dispatch queue.
-3. **Driver OTP Verification at Doorstep**: When Driver Rahul reaches the citizen's gate, he requests the 4-digit OTP. Entering the matching code verifies the delivery, stamps the digital handover, triggers celebration confetti, and marks the status as **Delivered**.
-4. **Generated Delivery & Audit Report**: A formal municipal report (*"Certificate of Water Supply & Security Handover"*) is generated with MBMC letterhead, displaying citizen details, fleet vehicle logistics, assigned driver Rahul, and the **VERIFIED OTP Handover Audit timestamp**, signed by Chief Engineer Adarsh Yadav.
-
----
-
-## 📍 Live Location Detection on Landing Page
-- Located prominently on the portal welcome page.
-- Utilizes browser Geolocation API (`navigator.geolocation.getCurrentPosition`).
-- Employs the Haversine formula to identify the closest sub-area out of MBMC's 79 localities.
-- Shows live municipal ward coverage, today's water supply timetable window, and nearest tanker depot distance.
-- Automatically persists coordinates in browser storage to auto-fill tanker bookings and grievance forms.
-
----
-
-## 👤 Unified Profile System Across All Dashboards
-- **Citizen Profile**: View/edit resident name, mobile, address, detected coordinates, and see lifetime counts of tanker bookings and complaints.
-- **Driver Profile**: View Driver Rahul's credentials, vehicle registration, base depot, rating (⭐ 4.9), heavy license validity, and daily trip counters.
-- **Admin Profile**: View Super Admin Adarsh Yadav's profile, direct contact `7715804452`, official email, Level 5 security clearance, and municipal authority privileges.
 
 ---
 

@@ -121,10 +121,29 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenAdmin }) => 
 
         {/* Bottom Bar */}
         <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <div>
-            © {new Date().getFullYear()} JalSeva • Mira-Bhayandar Municipal Corporation (MBMC). All rights reserved.
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-center sm:text-left">
+            <span>© {new Date().getFullYear()} JalSeva • Mira-Bhayandar Municipal Corporation (MBMC).</span>
+            <span className="hidden sm:inline">•</span>
+            <a
+              href="https://github.com/adarshshrawan5/jalseva-mbmc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 hover:text-sky-300 font-semibold inline-flex items-center justify-center gap-1 hover:underline"
+            >
+              <span>GitHub: adarshshrawan5/jalseva-mbmc</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
           <div className="flex items-center gap-4">
+            <a
+              href="https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-300 transition"
+            >
+              Live App
+            </a>
+            <span>•</span>
             <span className="hover:text-slate-400 cursor-pointer">Citizen Charter</span>
             <span>•</span>
             <span className="hover:text-slate-400 cursor-pointer">Water Quality Norms</span>
