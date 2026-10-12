@@ -1,349 +1,263 @@
-# 💧🤝 JalSeva (जलसेवा)
+# 💧 JalSeva (जलसेवा)
 
-### Digital Water Supply Management Portal for Mira-Bhayandar Citizens
-**Mira-Bhayandar Municipal Corporation (MBMC) • Department of Water Supply & Sewerage**
-
-> *"आपका पानी, आपकी सेवा - हर बूंद मायने रखती है"*  
-> *(Your Water, Your Service — Every Drop Matters)*
-
-[![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.x-646CFF.svg)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC.svg)](https://tailwindcss.com/)
-[![Recharts](https://img.shields.io/badge/Recharts-3.x-22c55e.svg)](https://recharts.org/)
-[![Leaflet](https://img.shields.io/badge/Leaflet-OpenStreetMap-199900.svg)](https://leafletjs.com/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+### Municipal Water Supply & Grievance Management System
+**Mira-Bhayandar Municipal Corporation (MBMC) • Water Supply & Sewerage Department**
 
 ---
 
-## 🔗 Official Links & Deployments
+## 📌 Project Overview
 
-- 🌐 **Live Application (Production / Shared Preview)**:  
-  [https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app)
-- 🛠️ **Development App URL**:  
-  [https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app)
-- 🐙 **GitHub Repository**:  
-  [https://github.com/adarshshrawan5/jalseva-mbmc](https://github.com/adarshshrawan5/jalseva-mbmc)
-- 👤 **Maintainer / Lead Engineer**:  
-  **Adarsh Yadav** (`adarshshrawan5@gmail.com` • `MBMC-WTR-001`)
+**JalSeva** is a digital civic portal engineered for the **Mira-Bhayandar Municipal Corporation (MBMC)**, serving over 800,000 residents across 4 administrative zones and 79 localized sub-areas. 
+
+The application bridges citizens, field engineers, and emergency tanker drivers into a unified municipal workflow:
+- **Citizens** monitor real-time distribution schedules, submit grievance dockets with photo attachments, book emergency potable tankers with OTP-verified handovers, log optical meter readings, and inspect monthly consumption trends via Recharts.
+- **Tanker Drivers** receive dispatch assignments, navigate depot-to-consumer routes on interactive maps, verify 4-digit delivery handshake OTPs, and update delivery statuses.
+- **Municipal Administrators** broadcast emergency outage bulletins, manage ward supply timetables, assign field plumbers to complaints with live workload balancing, track tanker fleet logistics (Kanban dispatch board), and inspect system telemetry.
 
 ---
 
-## 📖 Executive Summary
+## 🔗 Deployments & Repository
 
-**JalSeva (जलसेवा)** is a full-stack digital municipal bridge connecting **809,378 residents** of Mira-Bhayandar with municipal water supply authorities, field engineers, and emergency tanker drivers.
-
-The platform provides a unified **Gateway Landing Page** routing users into three dedicated operational dashboards:
-1. 👤 **Citizen Dashboard**: Real-time water supply schedules across 79 localities, strict Today/Tomorrow emergency tanker booking with live GPS tracking, Recharts consumption trends, online complaint redressal with 48h SLA, and interactive ward directory.
-2. 🚚 **Tanker Driver Dashboard**: Assigned trip queues, turn-by-turn route navigation from depot to citizen address, direct citizen call integration, and 1-tap *"In Transit"* & *"Delivered"* trip completion with 4-digit handover OTP validation.
-3. 🛡️ **MBMC Admin Command Console**: Emergency outage broadcast manager with push/SMS simulation, zone timetable grid with batch updates and audit trails, master grievance desk with plumber dispatch, and a live Kanban tanker dispatch board.
-
----
-
-## 🚀 Core Modules & Capabilities
-
-### 1. 📊 Recharts-Based Water Consumption & Meter Analytics Dashboard
-- **Monthly Usage Trends (kL & Liters)**:
-  - Interactive `AreaChart` with smooth gradient fill and live hover tooltips displaying monthly kiloliters (kL) and equivalent liters.
-  - Reference lines indicating MBMC statutory tariff thresholds:
-    - **Slab 1 Limit (15 kL)**: Subsidized lifeline domestic quota (@ ₹6.50/kL).
-    - **Slab 2 Cap (30 kL)**: Standard residential consumption tier (@ ₹10.00/kL).
-- **Official MBMC Telescopic Tariff Breakdown**:
-  - `BarChart` displaying assessed municipal bills according to municipal tariff guidelines:
-    - **Slab 1 (0–15 kL)**: ₹6.50 / kL
-    - **Slab 2 (16–30 kL)**: ₹10.00 / kL
-    - **Slab 3 (>30 kL)**: ₹16.00 / kL
-    - **Sewerage Cess**: 20% on water charges
-    - **Meter Service Rent**: ₹40.00 fixed
-- **Executive Telemetry & Benchmarking Cards**:
-  - Latest month usage with month-over-month trend indicator (+/- %).
-  - Estimated water bill with itemized sewerage cess and meter rent.
-  - Per-capita daily consumption (LPCD) benchmarked against the CPHEEO urban standard (135 LPCD for a 5-member family).
-  - Tariff slab efficiency tracker showing headroom before higher penalties.
-- **Logged Meter Reading Audit Trail**:
-  - Historical table displaying monthly cycles, previous vs. current dial numbers, net kL, billing status, and an itemized breakdown modal for each docket.
-  - Synchronized with `storageService` so any new optical dial reading logged via the Self-Meter Reader immediately reflects across all charts.
-- **Embedded in Citizen Home & Profile Modal**:
-  - Accessible on `CitizenHome` with quick-access CTA in the hero banner.
-  - Integrated into `ProfileModal` with sub-tabs for Resident Profile and Water Usage & Analytics.
-
----
-
-### 2. 🔐 Unified Sign-Up & Sign-In Navigation
-- **Consolidated Entry Point**: Single, high-performance modal replacing cluttered multi-button header layouts.
-- **Tabbed Interface**: Seamless toggle between **Log In** and **Create Account** in one dialog.
-- **One-Click Resident Presets**: Fast demo access (*Sunil Merchant, Rajesh Kumar, Fatima Shaikh*) with simulated OTP verification and GPS auto-fill.
-- **Mobile Optimized**: Designed to fit mobile screens with virtual keyboards without clipping or layout jumps.
-
----
-
-### 3. 🌐 Public Landing Page & Role Gateway
-- **Multi-Role Entry Point**: Direct 1-click access to **Citizen Portal**, **Driver Dashboard**, and **Admin Console**.
-- **Live Emergency Outage Ticker**: Real-time scrolling banner highlighting active pipeline breaks, repair timelines, and alternative arrangements.
-- **City Telemetry Dashboard**: Real-time indicators showing **142.5 MLD** supplied from Surya & MIDC Jambhul sources, active complaints, completed tanker trips, and citizens served.
-- **Quick 4-Zone Schedule Lookup**: Rapid morning and evening timing preview for Bhayandar East, Bhayandar West, Mira Road East, and Uttan Coastal Zone.
-- **24x7 Helplines**: Toll-free control room direct dialing (`1800-22-2026` / `022-2819 2828`).
-
----
-
-### 4. 👤 Citizen Portal
-- **Area-Wise Schedule & Outage Tracker**:
-  - Covers **4 Municipal Zones** across **79 sub-areas** and distinct localities.
-  - **3-Level Hierarchy Navigation**: Zone → Sub-Area → Locality.
-  - **Daily Timing Cards** & **7-Day Weekly Grid View**.
-  - **Live Supply Countdown Timer**: *"Next water release in X hours Y minutes"*.
-  - **📍 Live Location Detection**: Uses browser Geolocation API to auto-detect citizen GPS coordinates, compute nearest municipal area/zone, display accuracy indicators (e.g. `±45m`), and center the interactive OpenStreetMap.
-  - **Color-Coded Outage Statuses**: 🔴 Red (Emergency Outage), 🟡 Yellow (Planned Maintenance), 🟢 Green (Normal Supply).
-- **Water Tanker Booking System (Custom Features)**:
-  - **Strict Date Restriction Logic**: Enforced strictly to **Today or Tomorrow only** (`min={today}` & `max={tomorrow}`).
-  - **🏢 Society Bulk Booking (CHS Mode)**: Cooperative Housing Societies can book multi-tanker fleet orders (1x to 5x 10,000L = up to 50,000 Liters) with society registration number (`MH/TNA/CHS/...`), underground sump capacity, staggered 1-hour interval dispatch, and 15% subsidized civic rebate.
-  - **💬 WhatsApp & SMS Updates**: Simulated WhatsApp dispatch alert preview showing verified municipal badge, complete logistics details, and highlighted **4-Digit Handover OTP** with copy, audio ping, and web intent links.
-  - **9 Daily Time Slots**: 06:00–08:00 through 22:00–23:59 with real-time remaining slot capacity counters.
-  - **Capacity Options**: 5,000 Liters, 10,000 Liters (standard), and 15,000 Liters.
-  - **Distance-Based Auto Assignment**: Employs the **Haversine formula** to calculate great-circle distances across all 4 MBMC depots (*Kharigaon Central, Sector 4 Mira Rd, Subhash Nagar, Uttan*), selects the nearest available depot, computes transit ETA, and plots route polylines.
-  - **Digital Receipt Modal**: Official municipal water docket with **scannable SVG QR Code**, printable view, and driver details.
-  - **Live Moving Tanker Tracking**: Real-time moving truck simulation along the delivery route with driver details, OTP verification box, and call button.
-- **🌱 Conservation Tips Rotating Daily Widget**:
-  - Embedded on the Citizen Home Dashboard with 10+ actionable daily sustainability practices.
-  - Features real-time **Pledge Counter** with confetti celebration, potential water saved estimation (e.g., `+180 L/day`), category filters, and auto-rotation toggle.
-- **📊 Water Meter Self-Reading & Instant Tariff Estimator**:
-  - Optical odometer dial simulation with serial number extraction and tamper check.
-  - Calculates net consumption in kL and estimates bills according to official MBMC domestic slab tariffs.
-  - Generates official submission certificates and automatically updates the consumption dashboard.
-- **🌐 Multilingual Toggle (English • मराठी • हिंदी)**:
-  - Header switcher dynamically updating portal navigation, slogans, badges, and action labels into English, Marathi, or Hindi with persistent local storage.
-- **Online Complaint Redressal Desk**:
-  - **4-Step Wizard**: Contact details, GPS-assisted area detection, 10 predefined categories (*Low Pressure, No Water, Pipeline Leak, Contaminated Water, Dirty Water, Water Logging, Meter Issue, etc.*) with auto-assigned priority, photo upload with preview, and review screen.
-  - Generates unique Docket ID (`CMPYYYYMMDDNNN`) with simulated SMS confirmation.
-  - **Visual Status Timeline**: 📝 Registered → 👨‍🔧 Assigned → 🔧 In Progress → ✅ Resolved with timestamped logs, worker contact, reopen option, and 5-star rating.
-- **Support & Ward Directory**: Contact details for all 4 Zonal Ward Offices, FAQ accordion, and executive suggestion submission form.
-
----
-
-### 5. 🚚 Tanker Driver Dashboard
-- **Authorized Driver Profiles**: Quick 1-click driver presets (*Rahul, Mahesh Jadhav, Suresh Patil, Francis Fernandes*) or sign-in via vehicle registration number + 4-digit security PIN.
-- **Active Trip Showcase**: Real-time card showing delivery recipient name, mobile number (click-to-call `tel:` link), complete address, landmark, and requested volume.
-- **Turn-by-turn Navigation Map**: Interactive Leaflet route map showing origin depot, live tanker position, and citizen destination.
-- **Trip Status Controls**:
-  - 🚀 **"Start Navigation / Mark In Transit"**: Updates booking status in real-time, activating the moving truck icon on the citizen's live tracking screen.
-  - ✅ **"Confirm Water Delivered"**: Completes trip, updates driver delivery counters, and records delivery timestamp after OTP verification.
-- **Trip Queue & History**: Review upcoming scheduled deliveries for today and tomorrow.
-
----
-
-### 6. 🛡️ MBMC Admin Command Center
-- **Role-Based Access Control**: Presets for **Super Admin** (*Adarsh Yadav*), **Zone Manager** (*Er. Sachin Patil*), and **Field Officer** (*Suresh Patil*).
-- **Operations Dashboard**: 6 key metric counters, zone load distribution bar charts, and live activity stream.
-- **Broadcast & Outage Manager**: Create and publish emergency pipeline burst notices or planned maintenance with multi-zone selection, start/end datetimes, priority levels, live ticker sync, and instant push/SMS broadcast simulator.
-- **Schedule Manager**: Zone-by-zone timetable configuration with 15-minute intervals, **Batch Update ("Apply to All Zones")**, and immutable audit log.
-- **Complaint Resolution Desk**: Master table with multi-filters, detail inspection modal, field plumber assignment with active workload metrics, status transition workflow, and CSV export.
-- **Tanker Dispatch Manager**: Dual view switcher (**Table Log** vs **Kanban Board**: *Pending Approval → Approved → In Transit → Delivered*), driver vehicle assignment modal, and delivery confirmation.
-- **Reports & Analytics**: Visual charts for grievances by category, zone volume, tanker fleet utilization (86%), and response times.
-- **Staff & Drivers**: Directory of certified field plumbers, tanker drivers, and depot managers.
-
----
-
-### 7. 🌓 Theme System (Dark & Light Mode)
-- Seamless switcher in the top navigation bar.
-- Persisted in `localStorage`.
-- High contrast, WCAG AA compliant colors, optimized for low-light night-time usage.
-
----
-
-## 🏗️ Technical Architecture & Stack
-
-| Layer | Technology |
+| Resource | URL |
 |---|---|
-| **Framework** | React 19 (Functional components, Hooks, Context API) |
-| **Build Tool** | Vite 8 + ESBuild |
-| **Language** | TypeScript (Strict typing across entities) |
-| **Styling** | Tailwind CSS v4 (`@custom-variant dark`) |
-| **Data Visualizations** | Recharts 3.x (`AreaChart`, `BarChart`, `ResponsiveContainer`, `Tooltip`) |
-| **Maps & GIS** | Leaflet.js 1.9 + OpenStreetMap tiles + Custom SVG Markers |
-| **State & Persistence** | React Reactive State + Custom LocalStorage StorageService with Cross-Tab Event Dispatch |
-| **Icons & Visuals** | Lucide React + Canvas Confetti |
-| **Calculations** | Haversine Formula (GPS Distance in km) + City Speed & Prep ETA Model |
+| **Production Application** | [https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-pre-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app) |
+| **Development URL** | [https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app](https://ais-dev-3qwpih5actl2tud5iwcbh7-372840170243.asia-southeast1.run.app) |
+| **GitHub Repository** | [https://github.com/adarshshrawan5/JalSeva](https://github.com/adarshshrawan5/JalSeva) |
+| **Maintainer** | **Adarsh Yadav** (`adarshshrawan5@gmail.com`) |
 
 ---
 
-## 📁 Repository File Structure
+## 🛠️ Tech Stack & Architecture
+
+- **Frontend Core**: React 19, TypeScript, Vite 8
+- **Styling**: Tailwind CSS v4, Lucide React icons
+- **Data Visualizations**: Recharts 3.x (`AreaChart`, `BarChart`, `ResponsiveContainer`, `Tooltip`)
+- **GIS & Mapping**: Leaflet 1.9, OpenStreetMap tile servers, Haversine geospatial distance calculations
+- **Backend & Cloud Database**:
+  - **Firebase Firestore**: Real-time persistent document database (`ai-studio-aquaconnectmbmcd-ed48ea96-a122-4654-9e0e-577010d583d8`)
+  - **Firebase Authentication**: Google OAuth provider and verified session token handling
+  - **Security Architecture**: Attribute-Based Access Control (ABAC) in `firestore.rules` preventing path injection, Denial-of-Wallet payloads, and unauthorized state mutation
+  - **Intermediate Schema**: Validated `firebase-blueprint.json` schema definitions
+  - **Offline Fallback**: Resilient LocalStorage reactive synchronization via custom event bus
+
+---
+
+## 🚀 Key Functional Modules
+
+### 1. Water Consumption & Meter Analytics Dashboard (`WaterConsumptionDashboard.tsx`)
+- **Usage Trends**: Dual-axis `AreaChart` plotting monthly consumption in kiloliters (kL) and liters with threshold reference lines for subsidized domestic quota (15 kL) and standard residential cap (30 kL).
+- **Telescopic Tariff Assessment**: `BarChart` calculating bills based on official MBMC slab rates:
+  - Slab 1 (0–15 kL): ₹6.50/kL
+  - Slab 2 (16–30 kL): ₹10.00/kL
+  - Slab 3 (>30 kL): ₹16.00/kL
+  - Sewerage Cess: 20% surcharge
+  - Meter Service Rent: ₹40.00 fixed charge
+- **Benchmarking Indicators**:
+  - Month-over-month consumption percentage variance.
+  - Per-capita daily consumption (LPCD) evaluated against the CPHEEO urban baseline (135 LPCD).
+  - Bill breakdown modal with itemized tariff dockets.
+- **Optical Dial Reader Integration**: Synchronized with the Citizen Self-Meter Reader component; any logged dial reading updates the chart and local database immediately.
+
+### 2. Emergency Water Tanker Booking & Fleet Dispatch
+- **Strict Schedule Restrictions**: Bookings are restricted to **Today or Tomorrow** only.
+- **Geospatial Depot Routing**: Calculates Haversine distances to the 4 municipal depots (*Kharigaon Central, Sector 4 Mira Road, Subhash Nagar, Uttan*), auto-assigning the closest depot with available vehicle stock.
+- **Housing Society (CHS) Bulk Ordering**: Allows Cooperative Housing Societies to book fleet deliveries (up to 50,000L) with registration registration proofs and staggered dispatch intervals.
+- **Handover Security**: Generates a cryptographically random 4-digit Delivery OTP required by the driver to complete the order.
+- **Live Fleet Tracking**: Displays moving truck coordinates, driver contact details, vehicle registration, and estimated arrival times on an interactive Leaflet map.
+
+### 3. Grievance Redressal Desk
+- **Incident Categorization**: Pipeline Leaks, Contaminated Water, Low Pressure, Supply Outages, Water Logging, Dirty Water, and Meter Faults.
+- **GPS Tagging & Evidence Upload**: Captures client geolocation coordinates and allows photo proof uploads.
+- **Lifecycle Tracking**: Ticket state machine (`Pending` → `Assigned` → `In Progress` → `Resolved` → `Reopened`) with field worker assignment, audit notes, resolution timestamping, and 5-star citizen ratings.
+
+### 4. Supply Timetable & Outage Broadcasts
+- **Hierarchy Navigation**: 4 Municipal Zones → 79 Local Sub-Areas → Street Localities.
+- **Supply Countdown**: Real-time countdown timer to the next scheduled valve release.
+- **Administrative Broadcaster**: Emergency pipeline maintenance notices with start/end windows, affected ward tags, and simulated SMS/Push alert dispatch.
+
+### 5. Multi-Role Authentication & Access Control
+- **Citizen Access**: Phone/name profile login or 1-click Google Sign-In via Firebase Auth.
+- **Fleet Driver Access**: Vehicle number and 4-digit PIN authentication with dedicated dispatch queue.
+- **Municipal Administrator Access**: Role-based access (`Super Admin`, `Zone Manager`, `Field Officer`) with timetable editors, grievance consoles, and staff rosters.
+
+---
+
+## 📂 Project Directory Structure
 
 ```
 ├── .env.example
-├── index.html                        # HTML entry point with JalSeva meta tags & Leaflet CSS
-├── metadata.json                     # Applet capabilities & permissions
+├── index.html                        # HTML entry point with JalSeva meta tags
+├── metadata.json                     # Applet capabilities & runtime configuration
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-├── README.md                         # Project documentation & GitHub instructions
+├── firebase-applet-config.json       # Firebase SDK configuration
+├── firebase-blueprint.json           # Intermediate Representation (IR) schema
+├── firestore.rules                   # Zero-Trust Firestore Security Rules
+├── firestore.rules.test.ts           # Rules test suite validating adversarial payloads
+├── security_spec.md                  # Security specification & Dirty Dozen payload tests
+├── README.md
 ├── src/
-│   ├── main.tsx                      # React root bootstrap
-│   ├── App.tsx                       # Core application controller & multi-role view routing
-│   ├── index.css                     # Tailwind CSS v4 configuration & theme transitions
+│   ├── main.tsx                      # Application entry point
+│   ├── App.tsx                       # Root view router & multi-role orchestration
+│   ├── firebase.ts                   # Firebase App, Firestore, Auth, & error handler
+│   ├── index.css                     # Tailwind CSS v4 styling & dark theme definitions
 │   ├── types/
-│   │   └── index.ts                  # Data models (Zones, Areas, Complaints, Tankers, MeterReadings)
+│   │   └── index.ts                  # TypeScript definitions (Complaints, Bookings, MeterLogs)
 │   ├── data/
-│   │   └── mbmcData.ts               # Authentic MBMC dataset (4 zones, 79 areas, 4 depots, initial meter logs)
+│   │   └── mbmcData.ts               # MBMC geographic zones, depots, initial records
 │   ├── services/
-│   │   ├── storageService.ts         # Persistent reactive storage, meter readings & audit logs
-│   │   └── distanceService.ts        # Haversine distance, ETA, and depot auto-routing
+│   │   ├── storageService.ts         # Central storage engine, reactive dispatcher & cache
+│   │   ├── firebaseService.ts        # Firestore document sync & real-time snapshot listeners
+│   │   └── distanceService.ts        # Haversine distance, depot allocation & ETA calculation
 │   ├── context/
-│   │   ├── ThemeContext.tsx          # Persistent Dark / Light theme provider
-│   │   └── LanguageContext.tsx       # Multilingual provider (English, Marathi, Hindi)
+│   │   ├── AuthContext.tsx           # Firebase authentication context
+│   │   ├── ThemeContext.tsx          # Dark / Light theme provider
+│   │   └── LanguageContext.tsx       # English / मराठी / हिंदी localization
 │   └── components/
 │       ├── common/
-│       │   ├── JalSevaLogo.tsx       # Brand logo (💧 Blue Drop + 🤝 Orange Service Hand)
-│       │   ├── Navbar.tsx            # Main top navigation with GitHub link & portal gateways
-│       │   ├── Footer.tsx            # Municipal footer with GitHub repo & live app links
-│       │   ├── ThemeToggle.tsx       # Smooth Moon / Sun toggle
-│       │   ├── AlertTicker.tsx       # Live emergency outage marquee banner
-│       │   ├── Modal.tsx             # Reusable accessible dialog modal
-│       │   ├── LeafletMapView.tsx    # Interactive Leaflet map with custom HTML markers
-│       │   ├── ReceiptModal.tsx      # Official municipal receipt with SVG QR code
-│       │   ├── ProfileModal.tsx      # Profile modal with embedded Water Usage Analytics
-│       │   └── MainLandingPage.tsx   # Welcome landing page with 3 role login cards
+│       │   ├── JalSevaLogo.tsx       # Brand logo component
+│       │   ├── Navbar.tsx            # Navigation header with portal toggles
+│       │   ├── Footer.tsx            # Municipal footer with links & helpline numbers
+│       │   ├── LeafletMapView.tsx    # Leaflet OpenStreetMap wrapper
+│       │   ├── ProfileModal.tsx      # Profile modal with embedded usage analytics
+│       │   └── MainLandingPage.tsx   # Gateway landing page
 │       ├── citizen/
-│       │   ├── CitizenLogin.tsx            # 1-click resident sign-in & mobile login
-│       │   ├── CitizenHome.tsx             # Citizen home dashboard with consumption chart & quick access
-│       │   ├── WaterConsumptionDashboard.tsx # Recharts monthly usage, telescopic tariff & logs
-│       │   ├── WaterMeterReader.tsx        # Optical dial self-reading & instant bill calculation
-│       │   ├── ScheduleTracker.tsx         # 4-zone schedule, countdown timer & GPS auto-detect
-│       │   ├── ComplaintForm.tsx           # 4-step grievance registration wizard
-│       │   ├── ComplaintTracker.tsx        # Docket search & visual status journey
-│       │   ├── TankerBookingForm.tsx       # Strict Today/Tomorrow tanker booking with maps
-│       │   ├── TankerTracker.tsx           # Live GPS moving tanker tracking
-│       │   └── SupportSection.tsx          # Ward office directory & FAQ accordion
+│       │   ├── CitizenLogin.tsx      # Citizen login with Google Sign-In integration
+│       │   ├── CitizenHome.tsx       # Citizen home dashboard with consumption trends
+│       │   ├── WaterConsumptionDashboard.tsx # Recharts usage & telescopic billing dashboard
+│       │   ├── WaterMeterReader.tsx  # Self-meter optical dial reader
+│       │   ├── ScheduleTracker.tsx   # Ward timetable countdown & GPS locator
+│       │   ├── ComplaintForm.tsx     # 4-step grievance registration wizard
+│       │   ├── ComplaintTracker.tsx  # Grievance docket timeline & rating
+│       │   ├── TankerBookingForm.tsx # Emergency tanker booking system
+│       │   ├── TankerTracker.tsx     # Live GPS tanker tracking & OTP handshake
+│       │   └── SupportSection.tsx    # Ward office directory & helpline
 │       ├── driver/
-│       │   ├── DriverLogin.tsx             # 1-click vehicle login for fleet drivers
-│       │   └── DriverDashboard.tsx         # Active trip navigation, call citizen & delivery confirmation
+│       │   ├── DriverLogin.tsx       # Fleet driver authentication
+│       │   └── DriverDashboard.tsx   # Route navigation & delivery confirmation
 │       └── admin/
-│           ├── AdminLogin.tsx              # 1-click administrative role sign-in
-│           ├── AdminLayout.tsx             # Administrative dashboard layout & sidebar
-│           ├── AdminDashboardHome.tsx      # Operations KPI counters & zone load distribution
-│           ├── AdminBroadcastManager.tsx   # Outage notice publisher & push/SMS simulator
-│           ├── AdminScheduleManager.tsx    # Timetable grid editor with batch update
-│           ├── AdminComplaintsDesk.tsx     # Master grievance table & field plumber assignment
-│           ├── AdminTankerManager.tsx      # Tanker dispatch Kanban board & driver assignment
-│           └── AdminStaffManager.tsx       # Staff & driver directory
+│           ├── AdminLogin.tsx        # Administrative authentication
+│           ├── AdminLayout.tsx       # Admin sidebar & workspace shell
+│           ├── AdminDashboardHome.tsx# Telemetry statistics & zone load meters
+│           ├── AdminBroadcastManager.tsx # Outage notice publisher
+│           ├── AdminScheduleManager.tsx  # Zone timetable editor
+│           ├── AdminComplaintsDesk.tsx   # Grievance dispatch & assignment desk
+│           ├── AdminTankerManager.tsx    # Tanker dispatch Kanban board
+│           └── AdminStaffManager.tsx # Field plumbers & fleet driver directory
 ```
 
 ---
 
-## ⚡ Getting Started (Local Development)
+## ⚡ Installation & Local Setup
 
 ### 1. Prerequisites
-- Node.js (v18.0.0 or higher)
-- npm (v9.0.0 or higher)
-- Git (v2.x or higher)
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+- **Git**
 
-### 2. Clone & Install
+### 2. Clone the Repository
 ```bash
-# Clone the repository
-git clone https://github.com/adarshshrawan5/jalseva-mbmc.git
+git clone https://github.com/adarshshrawan5/JalSeva.git
+cd JalSeva
+```
 
-# Navigate into the project directory
-cd jalseva-mbmc
-
-# Install dependencies
+### 3. Install Dependencies
+```bash
 npm install
 ```
 
-### 3. Run Development Server
+### 4. Environment Configuration
+Ensure `firebase-applet-config.json` is present in the project root with valid Firebase credentials:
+```json
+{
+  "projectId": "booming-lane-3mn89",
+  "appId": "1:997457548685:web:818cb314035a3e0ce559c4",
+  "apiKey": "AIzaSyAbGdhlgekLfxp2K7BzjmZzzu3flT8a6gI",
+  "authDomain": "booming-lane-3mn89.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-aquaconnectmbmcd-ed48ea96-a122-4654-9e0e-577010d583d8",
+  "storageBucket": "booming-lane-3mn89.firebasestorage.app",
+  "messagingSenderId": "997457548685"
+}
+```
+
+### 5. Run Development Server
 ```bash
 npm run dev
 ```
-Open your browser at `http://localhost:3000` to interact with **JalSeva**.
+Open `http://localhost:3000` in your web browser.
 
-### 4. Build for Production
+### 6. Validate Build & Linting
 ```bash
+# Type check with TypeScript
+npm run lint
+
+# Compile production bundle
 npm run build
 ```
 
 ---
 
-## 🚀 Pushing to Your GitHub Account
+## 📤 Pushing Changes to GitHub
 
-To push this repository to your personal GitHub account (`adarshshrawan5`):
-
-### Step 1: Create a Repository on GitHub
-1. Go to [https://github.com/new](https://github.com/new).
-2. Set **Repository name** to: `jalseva-mbmc`.
-3. Choose **Public** (or **Private**).
-4. Leave *"Initialize this repository with a README"* unchecked.
-5. Click **Create repository**.
-
-### Step 2: Push Local Code to GitHub
-Run the following commands in your terminal:
+To push your local repository directly to your GitHub repository (`adarshshrawan5/JalSeva`):
 
 ```bash
-# 1. Initialize git (if not already done)
-git init
-git branch -M main
+# Verify git status
+git status
 
-# 2. Add remote origin
-git remote add origin https://github.com/adarshshrawan5/jalseva-mbmc.git
-
-# 3. Stage and commit all files
+# Stage all files
 git add .
-git commit -m "feat: complete JalSeva digital water supply management portal with Recharts dashboard"
 
-# 4. Push to GitHub
+# Create a clean commit
+git commit -m "feat: integrate Recharts consumption dashboard, Firebase Firestore & Google Auth"
+
+# Configure branch and remote
+git branch -M main
+git remote set-url origin https://github.com/adarshshrawan5/JalSeva.git
+
+# Push to GitHub
 git push -u origin main
 ```
 
-*(If prompted for credentials, use your GitHub username `adarshshrawan5` and your Personal Access Token [PAT] as the password).*
+---
+
+## 🔑 Test Credentials & Built-In Demo Accounts
+
+### 1. Citizen Portal
+- **Google Sign-In**: Click *"Sign In with Google Account"* on the resident login screen.
+- **Mobile Number Login**: Any 10-digit number (e.g. `9820544123`).
+- **Demo Accounts**:
+  - `9820544123` - Sunil Merchant (Jesal Park, Bhayandar East)
+  - `9820123456` - Rajesh Kumar (Golden Nest, Bhayandar East)
+  - `9870188992` - Fatima Shaikh (Naya Nagar, Mira Road East)
+  - *Guest Mode available without credentials.*
+
+### 2. Fleet Driver Dashboard
+- **Rahul**: Vehicle `MH-04-RH-8821` | Depot: Kharigaon Central | PIN: `1234`
+- **Mahesh Jadhav**: Vehicle `MH-04-CD-5678` | Depot: Mira Road Sec 4 | PIN: `1234`
+- **Suresh Patil**: Vehicle `MH-04-EF-9012` | Depot: Bhayandar West | PIN: `1234`
+- **Francis Fernandes**: Vehicle `MH-04-GH-3456` | Depot: Uttan Coastal | PIN: `1234`
+
+### 3. MBMC Admin Console
+- **Super Administrator**: `adarsh.yadav@mbmc.gov.in` (Employee ID: `MBMC-WTR-001`, PIN/Pass: `mbmc@2026`)
+- **Zone Manager**: `zonemanager@mbmc.gov.in` (Pass: `mbmc@2026`)
+- **Field Officer**: `fieldofficer@mbmc.gov.in` (Pass: `mbmc@2026`)
 
 ---
 
-## 🔑 Demo Access Credentials & Roles
-
-The application includes built-in **1-Click Demo Profiles** on each login screen, as well as full custom login support:
-
-### 👤 Citizen Portal
-- **Open Access**: Any citizen resident can log in by entering their Name, 10-digit Mobile Number, Sub-Area, and Residential Address.
-- **Auto GPS Detection**: Pre-fills address and locality automatically from device geolocation.
-- **Preset Citizen Profiles**:
-  - **Sunil Merchant**: `9820544123` (Jesal Park, Bhayandar East — active In Transit tanker delivery)
-  - **Rajesh Kumar**: `9820123456` (Golden Nest, Bhayandar East — active Low Pressure grievance)
-  - **Fatima Shaikh**: `9870188992` (Naya Nagar, Mira Road East — active Contamination grievance)
-  - *Or continue as Guest Resident without login.*
-
-### 🚚 Tanker Driver Dashboard
-- **Featured Fleet Driver**:
-  - **Rahul** (Vehicle `MH-04-RH-8821` • Mobile: `9820488312` • Kharigaon Central Depot • 10,000L Capacity • ⭐ 4.9 Rating • License: `MH0420190088214`)
-- **Other Fleet Drivers**:
-  - **Mahesh Jadhav**: Vehicle `MH-04-CD-5678` • Mira Road Sec 4 Depot • 10,000L Capacity
-  - **Suresh Patil**: Vehicle `MH-04-EF-9012` • Bhayandar West Depot • 15,000L Capacity
-  - **Francis Fernandes**: Vehicle `MH-04-GH-3456` • Uttan Coastal Depot • 5,000L Capacity
-- *Default Security PIN: `1234`*
-
-### 🛡️ MBMC Admin Console
-- **Super Administrator**:
-  - **Name**: **Adarsh Yadav**
-  - **Designation**: Chief Water Supply Engineer & Super Administrator
-  - **Direct Line**: `7715804452`
-  - **Municipal Email**: `adarsh.yadav@mbmc.gov.in`
-  - **Employee ID**: `MBMC-WTR-001`
-- **Zone Manager**: `zonemanager@mbmc.gov.in` (*Er. Sachin Patil*, Executive Engineer, Zone 1 & 2)
-- **Field Officer**: `fieldofficer@mbmc.gov.in` (*Suresh Patil*, Field Supervisor)
-- *Default Password: `mbmc@2026`*
-
----
-
-## 🏢 Mira-Bhayandar Municipal Corporation (MBMC) Geographic Coverage
+## 🗺️ Municipal Coverage Matrix
 
 | Zone ID | Zone Name | Marathi Name | Ward Coverage | Population | Primary Depot |
 |---|---|---|---|---|---|
-| **zone-1** | Bhayandar East | विभाग १: भाईंदर पूर्व | Wards 1, 2, 3 & 4 | ~238,500 | Kharigaon Central Water Depot |
-| **zone-2** | Bhayandar West | विभाग २: भाईंदर पश्चिम | Wards 5, 6, 7 & 8 | ~186,200 | Bhayandar West Subhash Nagar Depot |
-| **zone-3** | Mira Road East | विभाग ३: मीरा रोड पूर्व | Wards 9, 10, 11, 12 & 13 | ~298,400 | Mira Road Sector 4 Auxiliary Depot |
-| **zone-4** | Uttan & Coastal Zone | विभाग ४: उत्तन व सागरी विभाग | Wards 14, 15 & 16 | ~86,278 | Uttan Coastal Auxiliary Depot |
+| **zone-1** | Bhayandar East | विभाग १: भाईंदर पूर्व | Wards 1, 2, 3, 4 | ~238,500 | Kharigaon Central Depot |
+| **zone-2** | Bhayandar West | विभाग २: भाईंदर पश्चिम | Wards 5, 6, 7, 8 | ~186,200 | Subhash Nagar Depot |
+| **zone-3** | Mira Road East | विभाग ३: मीरा रोड पूर्व | Wards 9, 10, 11, 12, 13 | ~298,400 | Sector 4 Auxiliary Depot |
+| **zone-4** | Uttan Coastal | विभाग ४: उत्तन व सागरी विभाग | Wards 14, 15, 16 | ~86,278 | Uttan Coastal Depot |
 
 ---
 
-## 📜 License & Intellectual Property
+## 📄 License
 
 This project is licensed under the **Apache License 2.0**.  
-Developed for the **Mira-Bhayandar Municipal Corporation (MBMC) Water Supply & Sewerage Department**.
-
-*JalSeva (जलसेवा) — Dedicated to providing clean, predictable, and transparent water supply services to every resident of Mira-Bhayandar.*
+Developed for the **Mira-Bhayandar Municipal Corporation (MBMC)**.
