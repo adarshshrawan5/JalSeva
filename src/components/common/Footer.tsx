@@ -125,12 +125,12 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenAdmin }) => 
             <span>© {new Date().getFullYear()} JalSeva • Mira-Bhayandar Municipal Corporation (MBMC).</span>
             <span className="hidden sm:inline">•</span>
             <a
-              href="https://github.com/adarshshrawan5/jalseva-mbmc"
+              href="https://github.com/adarshshrawan5/JalSeva"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sky-400 hover:text-sky-300 font-semibold inline-flex items-center justify-center gap-1 hover:underline"
             >
-              <span>GitHub: adarshshrawan5/jalseva-mbmc</span>
+              <span>GitHub: adarshshrawan5/JalSeva</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>

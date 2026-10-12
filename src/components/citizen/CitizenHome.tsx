@@ -28,11 +28,14 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { WaterConsumptionDashboard } from './WaterConsumptionDashboard';
+import heroWaterPlantImg from '../../assets/images/hero_water_infrastructure_1791556389961.jpg';
+import tankerFleetImg from '../../assets/images/card_tanker_fleet_1791556405148.jpg';
+import waterLabImg from '../../assets/images/card_water_testing_lab_1791556421425.jpg';
 
 // Authentic MBMC municipal facility photo assets
-const HERO_WATER_PLANT_IMG = '/src/assets/images/hero_water_infrastructure_1791556389961.jpg';
-const TANKER_FLEET_IMG = '/src/assets/images/card_tanker_fleet_1791556405148.jpg';
-const WATER_LAB_IMG = '/src/assets/images/card_water_testing_lab_1791556421425.jpg';
+const HERO_WATER_PLANT_IMG = heroWaterPlantImg || '/images/hero_water_infrastructure.jpg';
+const TANKER_FLEET_IMG = tankerFleetImg || '/images/card_tanker_fleet.jpg';
+const WATER_LAB_IMG = waterLabImg || '/images/card_water_testing_lab.jpg';
 
 interface CitizenHomeProps {
   setActiveTab: (tab: ActiveTab) => void;

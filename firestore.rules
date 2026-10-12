@@ -1,0 +1,203 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Bootstrapped Admin with strict email verification guard per security guidelines
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'adarshshrawan5@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Validation Blueprint: User Profiles
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['id', 'name', 'role']) &&
+             data.keys().hasOnly(['id', 'name', 'email', 'phone', 'role', 'zoneId', 'address', 'consumerNumber']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.role in ['citizen', 'admin', 'worker'] &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('zoneId' in data) || (data.zoneId is string && data.zoneId.size() <= 30)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
+             (!('consumerNumber' in data) || (data.consumerNumber is string && data.consumerNumber.size() <= 50));
+    }
+
+    // Validation Blueprint: Complaints
+    function isValidComplaint(data) {
+      return data.keys().hasAll(['id', 'citizenName', 'phone', 'zoneId', 'issueType', 'status', 'description']) &&
+             data.id is string && data.id.size() <= 64 &&
+             data.citizenName is string && data.citizenName.size() > 0 && data.citizenName.size() <= 100 &&
+             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 20 &&
+             data.zoneId is string && data.zoneId.size() <= 20 &&
+             data.issueType is string && data.issueType.size() <= 50 &&
+             data.status in ['Pending', 'Assigned', 'In Progress', 'Resolved', 'Reopened'] &&
+             data.description is string && data.description.size() <= 1000 &&
+             (!('priority' in data) || data.priority in ['High', 'Medium', 'Low']) &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
+             (!('areaId' in data) || (data.areaId is string && data.areaId.size() <= 50)) &&
+             (!('areaName' in data) || (data.areaName is string && data.areaName.size() <= 100)) &&
+             (!('locality' in data) || (data.locality is string && data.locality.size() <= 100)) &&
+             (!('userId' in data) || (data.userId is string && data.userId.size() <= 128)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    // Validation Blueprint: Tanker Bookings
+    function isValidTankerBooking(data) {
+      return data.keys().hasAll(['id', 'citizenName', 'phone', 'zoneId', 'address', 'bookingDate', 'capacity', 'status', 'deliveryOtp']) &&
+             data.id is string && data.id.size() <= 64 &&
+             data.citizenName is string && data.citizenName.size() > 0 && data.citizenName.size() <= 100 &&
+             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 20 &&
+             data.zoneId is string && data.zoneId.size() <= 20 &&
+             data.address is string && data.address.size() <= 300 &&
+             data.bookingDate is string && data.bookingDate.size() <= 20 &&
+             data.capacity is number && data.capacity > 0 && data.capacity <= 20000 &&
+             data.status in ['Pending', 'Approved', 'Dispatched', 'In Transit', 'Delivered', 'Cancelled'] &&
+             data.deliveryOtp is string && data.deliveryOtp.size() <= 10 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('landmark' in data) || (data.landmark is string && data.landmark.size() <= 150)) &&
+             (!('assignedDepotId' in data) || (data.assignedDepotId is string && data.assignedDepotId.size() <= 50)) &&
+             (!('assignedDepotName' in data) || (data.assignedDepotName is string && data.assignedDepotName.size() <= 100)) &&
+             (!('timeSlot' in data) || (data.timeSlot is string && data.timeSlot.size() <= 30)) &&
+             (!('reason' in data) || (data.reason is string && data.reason.size() <= 300)) &&
+             (!('userId' in data) || (data.userId is string && data.userId.size() <= 128)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    // Validation Blueprint: Meter Readings
+    function isValidMeterReading(data) {
+      return data.keys().hasAll(['id', 'consumerNumber', 'citizenName', 'previousReadingKl', 'currentReadingKl', 'consumptionKl', 'readingDate', 'status']) &&
+             data.id is string && data.id.size() <= 64 &&
+             data.consumerNumber is string && data.consumerNumber.size() > 0 && data.consumerNumber.size() <= 50 &&
+             data.citizenName is string && data.citizenName.size() > 0 && data.citizenName.size() <= 100 &&
+             data.previousReadingKl is number && data.previousReadingKl >= 0 &&
+             data.currentReadingKl is number && data.currentReadingKl >= data.previousReadingKl &&
+             data.consumptionKl is number && data.consumptionKl >= 0 &&
+             data.readingDate is string && data.readingDate.size() <= 30 &&
+             data.status in ['Submitted', 'Verified', 'Audited'] &&
+             (!('meterSerialNumber' in data) || (data.meterSerialNumber is string && data.meterSerialNumber.size() <= 50)) &&
+             (!('zoneId' in data) || (data.zoneId is string && data.zoneId.size() <= 20)) &&
+             (!('areaName' in data) || (data.areaName is string && data.areaName.size() <= 100)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('estimatedBillAmount' in data) || (data.estimatedBillAmount is number && data.estimatedBillAmount >= 0)) &&
+             (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
+    }
+
+    // Validation Blueprint: Outage Alerts
+    function isValidOutageAlert(data) {
+      return data.keys().hasAll(['id', 'title', 'type', 'priority', 'reason', 'status']) &&
+             data.id is string && data.id.size() <= 64 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.type in ['Emergency Outage', 'Planned Maintenance', 'General Notice'] &&
+             data.priority in ['Critical', 'High', 'Medium', 'Low'] &&
+             data.reason is string && data.reason.size() <= 500 &&
+             data.status in ['Active', 'Resolved', 'Expired'] &&
+             (!('startTime' in data) || (data.startTime is string && data.startTime.size() <= 64)) &&
+             (!('endTime' in data) || (data.endTime is string && data.endTime.size() <= 64)) &&
+             (!('alternativeArrangement' in data) || (data.alternativeArrangement is string && data.alternativeArrangement.size() <= 500)) &&
+             (!('publishedBy' in data) || (data.publishedBy is string && data.publishedBy.size() <= 100)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    // Collection: Users
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) &&
+                       isValidUserProfile(incoming()) && incoming().id == userId &&
+                       incoming().role != 'admin'; // Forbid self-assigning admin role
+      allow update: if isSignedIn() && isValidId(userId) && isValidUserProfile(incoming()) && (
+        (request.auth.uid == userId && incoming().id == existing().id &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'consumerNumber', 'zoneId'])) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Collection: Complaints
+    match /complaints/{complaintId} {
+      allow get: if isValidId(complaintId);
+      allow list: if isSignedIn() || isAdmin();
+      allow create: if isValidId(complaintId) && isValidComplaint(incoming()) &&
+                       (!('userId' in incoming()) || (isSignedIn() && incoming().userId == request.auth.uid));
+      allow update: if isValidId(complaintId) && isValidComplaint(incoming()) && (
+        isAdmin() ||
+        (isSignedIn() && existing().userId == request.auth.uid &&
+         incoming().id == existing().id &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['description', 'phone', 'address']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Collection: Tanker Bookings
+    match /tanker_bookings/{bookingId} {
+      allow get: if isValidId(bookingId);
+      allow list: if isSignedIn() || isAdmin();
+      allow create: if isValidId(bookingId) && isValidTankerBooking(incoming()) &&
+                       (!('userId' in incoming()) || (isSignedIn() && incoming().userId == request.auth.uid));
+      allow update: if isValidId(bookingId) && isValidTankerBooking(incoming()) && (
+        isAdmin() ||
+        (isSignedIn() && existing().userId == request.auth.uid &&
+         incoming().id == existing().id &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'cancellationReason']) &&
+         incoming().status == 'Cancelled' && existing().status == 'Pending')
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Collection: Meter Readings
+    match /meter_readings/{readingId} {
+      allow get: if isValidId(readingId);
+      allow list: if isSignedIn() || isAdmin();
+      allow create: if isValidId(readingId) && isValidMeterReading(incoming()) &&
+                       (!('userId' in incoming()) || (isSignedIn() && incoming().userId == request.auth.uid));
+      allow update: if isValidId(readingId) && isValidMeterReading(incoming()) && isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Collection: Outage Alerts
+    match /outage_alerts/{alertId} {
+      allow get: if isValidId(alertId);
+      allow list: if true; // Public announcements for all municipal residents
+      allow create, update, delete: if isAdmin() && isValidId(alertId) &&
+                                       (request.method == 'delete' || isValidOutageAlert(incoming()));
+    }
+
+    // Collection: Admins
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Provisioned exclusively via cloud administrative tooling
+    }
+  }
+}

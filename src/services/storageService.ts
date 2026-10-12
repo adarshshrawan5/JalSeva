@@ -23,6 +23,7 @@ import {
   INITIAL_STATS,
   INITIAL_METER_READINGS,
 } from '../data/mbmcData';
+import { firebaseService } from './firebaseService';
 
 const STORAGE_KEYS = {
   ZONES: 'aqua_connect_zones_v1',
@@ -214,6 +215,7 @@ class StorageService {
     localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(alerts));
     this.addAuditLog(adminName, 'Alert Published', `${alert.type}: ${alert.title}`);
     this.dispatchEvent();
+    firebaseService.syncOutageAlert(newAlert).catch(() => {});
     return newAlert;
   }
 
@@ -263,6 +265,7 @@ class StorageService {
     // Update active complaints count in stats
     this.updateStatsDelta({ activeComplaintsDelta: 1 });
     this.dispatchEvent();
+    firebaseService.syncComplaint(newComplaint).catch(() => {});
     return newComplaint;
   }
 
@@ -404,6 +407,7 @@ class StorageService {
     // Decrement available tanker count at depot
     this.decrementDepotTanker(bookingData.assignedDepotId);
     this.dispatchEvent();
+    firebaseService.syncTankerBooking(newBooking).catch(() => {});
     return newBooking;
   }
 
@@ -741,6 +745,7 @@ class StorageService {
     readings.unshift(newRecord);
     localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(readings));
     this.dispatchEvent();
+    firebaseService.syncMeterReading(newRecord).catch(() => {});
     return newRecord;
   }
 
