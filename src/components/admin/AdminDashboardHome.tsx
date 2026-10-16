@@ -101,6 +101,14 @@ export const AdminDashboardHome: React.FC<AdminDashboardHomeProps> = ({
           )}
 
           <button
+            onClick={() => onNavigate('worker-assignment')}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span>Worker Assignment Desk</span>
+          </button>
+
+          <button
             onClick={() => onNavigate('complaints')}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5"
           >

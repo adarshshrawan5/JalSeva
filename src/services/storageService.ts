@@ -11,6 +11,8 @@ import {
   TankerBookingStatus,
   MeterReadingRecord,
   CitizenUser,
+  WorkAnalysis,
+  WorkerPaymentDetails,
 } from '../types';
 import {
   MBMC_ZONES,
@@ -271,7 +273,15 @@ class StorageService {
 
   assignComplaintWorker(
     complaintId: string,
-    worker: { id: string; name: string; phone: string; designation: string },
+    worker: {
+      id: string;
+      name: string;
+      phone: string;
+      designation: string;
+      avatar?: string;
+      rating?: number;
+      specialization?: string;
+    },
     adminName: string = 'Admin Desk'
   ): void {
     const complaints = this.getComplaints();
@@ -282,12 +292,13 @@ class StorageService {
           ...c,
           status: 'Assigned' as ComplaintStatus,
           assignedWorker: worker,
+          paymentStatus: c.paymentStatus || 'Pending',
           timeline: [
             ...c.timeline,
             {
               status: 'Assigned' as ComplaintStatus,
               timestamp: nowIso,
-              notes: `Assigned to field worker ${worker.name} (${worker.phone})`,
+              notes: `Assigned to field specialist ${worker.name} (${worker.phone} - ${worker.designation || worker.specialization || 'Field Engineer'})`,
               actor: adminName,
             },
           ],
@@ -296,7 +307,186 @@ class StorageService {
       return c;
     });
     localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
-    this.addAuditLog(adminName, 'Complaint Assigned', `Complaint ${complaintId} assigned to ${worker.name}`);
+
+    // Update worker's active load
+    const workers = this.getWorkers();
+    const updatedWorkers = workers.map((w) =>
+      w.id === worker.id
+        ? { ...w, activeComplaints: (w.activeComplaints || 0) + 1, currentStatus: 'On Job' as const }
+        : w
+    );
+    localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+
+    this.addAuditLog(adminName, 'Worker Assigned to Complaint', `Complaint ${complaintId} assigned to specialist ${worker.name}`);
+    this.dispatchEvent();
+  }
+
+  citizenRejectAssignedWorker(complaintId: string, reason: string): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    let assignedWorkerId: string | undefined;
+
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        assignedWorkerId = c.assignedWorker?.id;
+        return {
+          ...c,
+          status: 'Pending' as ComplaintStatus,
+          assignedWorker: undefined,
+          timeline: [
+            ...c.timeline,
+            {
+              status: 'Pending' as ComplaintStatus,
+              timestamp: nowIso,
+              notes: `Citizen declined assigned specialist due to: "${reason}". Ticket returned to MBMC Admin Desk for reassignment.`,
+              actor: 'Citizen Complainant',
+            },
+          ],
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+
+    if (assignedWorkerId) {
+      const workers = this.getWorkers();
+      const updatedWorkers = workers.map((w) =>
+        w.id === assignedWorkerId
+          ? {
+              ...w,
+              activeComplaints: Math.max(0, (w.activeComplaints || 1) - 1),
+              currentStatus: 'Available' as const,
+            }
+          : w
+      );
+      localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+    }
+
+    this.addAuditLog('Citizen', 'Worker Declined & Reassignment Requested', `Complaint ${complaintId} worker declined: ${reason}`);
+    this.dispatchEvent();
+  }
+
+  broadcastComplaint(complaintId: string, adminName: string = 'Admin Desk'): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        return {
+          ...c,
+          isBroadcasted: true,
+          timeline: [
+            ...c.timeline,
+            {
+              status: c.status,
+              timestamp: nowIso,
+              notes: `Broadcasted to qualified municipal plumbers in zone/specialty pool for 1st-accept claim.`,
+              actor: adminName,
+            },
+          ],
+        };
+      }
+      return c;
+    });
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+    this.addAuditLog(adminName, 'Complaint Broadcasted', `Complaint ${complaintId} broadcasted to open plumber pool for 1st-claim`);
+    this.dispatchEvent();
+  }
+
+  workerAcceptBroadcastJob(complaintId: string, worker: FieldWorker): boolean {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    let success = false;
+
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        if (c.assignedWorker) {
+          return c; // Already claimed by another worker!
+        }
+        success = true;
+        return {
+          ...c,
+          status: 'Assigned' as ComplaintStatus,
+          assignedWorker: {
+            id: worker.id,
+            name: worker.name,
+            phone: worker.phone,
+            designation: worker.specialization,
+            avatar: worker.avatar,
+            rating: worker.rating,
+            specialization: worker.specialization,
+          },
+          paymentStatus: c.paymentStatus || 'Pending',
+          timeline: [
+            ...c.timeline,
+            {
+              status: 'Assigned' as ComplaintStatus,
+              timestamp: nowIso,
+              notes: `Claimed and accepted first by field specialist ${worker.name} (${worker.phone} - ${worker.specialization})`,
+              actor: `${worker.name} (Field Plumber)`,
+            },
+          ],
+        };
+      }
+      return c;
+    });
+
+    if (success) {
+      localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+      const workers = this.getWorkers();
+      const updatedWorkers = workers.map((w) =>
+        w.id === worker.id
+          ? { ...w, activeComplaints: (w.activeComplaints || 0) + 1, currentStatus: 'On Job' as const }
+          : w
+      );
+      localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+      this.addAuditLog(worker.name, 'Broadcast Job Claimed', `Worker ${worker.name} claimed broadcast job ${complaintId}`);
+      this.dispatchEvent();
+    }
+    return success;
+  }
+
+  workerCancelOrDeclineJob(complaintId: string, workerId: string, reason: string): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    let workerName = 'Field Plumber';
+
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId && c.assignedWorker?.id === workerId) {
+        workerName = c.assignedWorker.name;
+        return {
+          ...c,
+          status: 'Pending' as ComplaintStatus,
+          assignedWorker: undefined,
+          isBroadcasted: true, // Return to open broadcast pool
+          timeline: [
+            ...c.timeline,
+            {
+              status: 'Pending' as ComplaintStatus,
+              timestamp: nowIso,
+              notes: `Job cancelled/released by assigned specialist ${workerName} due to: "${reason}". Returned to open broadcast queue for 1st-claim.`,
+              actor: `${workerName} (Field Plumber)`,
+            },
+          ],
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+
+    const workers = this.getWorkers();
+    const updatedWorkers = workers.map((w) =>
+      w.id === workerId
+        ? {
+            ...w,
+            activeComplaints: Math.max(0, (w.activeComplaints || 1) - 1),
+            currentStatus: 'Available' as const,
+          }
+        : w
+    );
+    localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+    this.addAuditLog(workerName, 'Job Cancelled / Released', `Worker ${workerName} cancelled job ${complaintId}: ${reason}`);
     this.dispatchEvent();
   }
 
@@ -337,15 +527,143 @@ class StorageService {
     this.dispatchEvent();
   }
 
-  rateComplaint(complaintId: string, rating: number, feedback?: string): void {
+  workerUpdateJobStatus(
+    complaintId: string,
+    status: ComplaintStatus,
+    notes: string,
+    workerName: string
+  ): void {
     const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
     const updated = complaints.map((c) => {
       if (c.id === complaintId) {
+        return {
+          ...c,
+          status,
+          timeline: [
+            ...c.timeline,
+            {
+              status,
+              timestamp: nowIso,
+              notes,
+              actor: workerName,
+            },
+          ],
+        };
+      }
+      return c;
+    });
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+    this.addAuditLog(workerName, `Worker Status -> ${status}`, `Complaint ${complaintId}: ${notes}`);
+    this.dispatchEvent();
+  }
+
+  workerSubmitWorkAnalysis(
+    complaintId: string,
+    analysis: WorkAnalysis,
+    worker: FieldWorker
+  ): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        return {
+          ...c,
+          status: 'Resolved' as ComplaintStatus,
+          workAnalysis: analysis,
+          resolutionNotes: analysis.analysisNotes || analysis.diagnosis,
+          resolvedAt: nowIso,
+          paymentStatus: c.paymentStatus === 'Paid' ? 'Paid' : 'Pending',
+          timeline: [
+            ...c.timeline,
+            {
+              status: 'Resolved' as ComplaintStatus,
+              timestamp: nowIso,
+              notes: `Field Work & Technical Analysis Completed: ${analysis.diagnosis}. Total repair/service fee: ₹${analysis.totalAmount}`,
+              actor: `${worker.name} (Field Specialist)`,
+            },
+          ],
+        };
+      }
+      return c;
+    });
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+
+    // Update worker stats: decrement active load, increment completedTotal
+    const workers = this.getWorkers();
+    const updatedWorkers = workers.map((w) =>
+      w.id === worker.id
+        ? {
+            ...w,
+            activeComplaints: Math.max(0, (w.activeComplaints || 1) - 1),
+            completedTotal: (w.completedTotal || 0) + 1,
+            currentStatus: 'Available' as const,
+          }
+        : w
+    );
+    localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+
+    this.updateStatsDelta({ activeComplaintsDelta: -1 });
+    this.addAuditLog(worker.name, 'Work Analysis Submitted', `Complaint ${complaintId} resolved with fee ₹${analysis.totalAmount}`);
+    this.dispatchEvent();
+  }
+
+  citizenPayWorkerService(
+    complaintId: string,
+    payment: WorkerPaymentDetails
+  ): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        return {
+          ...c,
+          paymentStatus: 'Paid' as const,
+          paymentDetails: payment,
+          timeline: [
+            ...c.timeline,
+            {
+              status: c.status,
+              timestamp: nowIso,
+              notes: `Citizen payment of ₹${payment.amount} settled via ${payment.method} (TXN ID: ${payment.transactionId}). Official e-Receipt issued.`,
+              actor: payment.payerName || 'Citizen Complainant',
+            },
+          ],
+        };
+      }
+      return c;
+    });
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+    this.addAuditLog('Citizen Payment', 'Worker Service Fee Paid', `Complaint ${complaintId}: ₹${payment.amount} paid via ${payment.method} [TXN: ${payment.transactionId}]`);
+    this.dispatchEvent();
+  }
+
+  rateComplaint(complaintId: string, rating: number, feedback?: string): void {
+    const complaints = this.getComplaints();
+    let assignedWorkerId: string | undefined;
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        assignedWorkerId = c.assignedWorker?.id;
         return { ...c, rating, feedback };
       }
       return c;
     });
     localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+
+    // Also update assigned worker rating average if worker exists
+    if (assignedWorkerId) {
+      const workers = this.getWorkers();
+      const updatedWorkers = workers.map((w) => {
+        if (w.id === assignedWorkerId) {
+          const currentRating = w.rating || 5.0;
+          const newAvg = Number(((currentRating * 4 + rating) / 5).toFixed(1));
+          return { ...w, rating: newAvg };
+        }
+        return w;
+      });
+      localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+    }
+
     this.dispatchEvent();
   }
 
@@ -372,6 +690,52 @@ class StorageService {
     });
     localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
     this.updateStatsDelta({ activeComplaintsDelta: 1 });
+    this.dispatchEvent();
+  }
+
+  citizenRejectAssignedWorker(complaintId: string, reason: string): void {
+    const complaints = this.getComplaints();
+    const nowIso = new Date().toISOString();
+    let rejectedWorkerId: string | undefined;
+
+    const updated = complaints.map((c) => {
+      if (c.id === complaintId) {
+        rejectedWorkerId = c.assignedWorker?.id;
+        return {
+          ...c,
+          status: 'Pending' as ComplaintStatus,
+          assignedWorker: undefined,
+          timeline: [
+            ...c.timeline,
+            {
+              status: 'Pending' as ComplaintStatus,
+              timestamp: nowIso,
+              notes: `Citizen declined assigned technician: "${reason}". Requested re-assignment/reschedule.`,
+              actor: 'Citizen Complainant',
+            },
+          ],
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+
+    if (rejectedWorkerId) {
+      const workers = this.getWorkers();
+      const updatedWorkers = workers.map((w) =>
+        w.id === rejectedWorkerId
+          ? {
+              ...w,
+              activeComplaints: Math.max(0, (w.activeComplaints || 1) - 1),
+              currentStatus: 'Available' as const,
+            }
+          : w
+      );
+      localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
+    }
+
+    this.addAuditLog('Citizen Reassignment', 'Worker Assignment Declined', `Complaint ${complaintId} returned to pending queue. Reason: ${reason}`);
     this.dispatchEvent();
   }
 
@@ -425,6 +789,34 @@ class StorageService {
       return true;
     }
     return false;
+  }
+
+  updateTankerPayment(
+    bookingId: string,
+    paymentDetails: {
+      paymentStatus: 'Paid';
+      paymentMethod: string;
+      transactionId: string;
+      amountPaid: number;
+      paidAt?: string;
+    }
+  ): void {
+    const bookings = this.getBookings();
+    const updated = bookings.map((b) =>
+      b.id === bookingId
+        ? {
+            ...b,
+            paymentStatus: paymentDetails.paymentStatus,
+            paymentMethod: paymentDetails.paymentMethod,
+            transactionId: paymentDetails.transactionId,
+            amountPaid: paymentDetails.amountPaid,
+            paidAt: paymentDetails.paidAt || new Date().toISOString(),
+          }
+        : b
+    );
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(updated));
+    this.addAuditLog('Citizen Payment', 'Tanker Fee Settled', `Booking ${bookingId}: ₹${paymentDetails.amountPaid} paid via ${paymentDetails.paymentMethod}`);
+    this.dispatchEvent();
   }
 
   // Location persistence across site
@@ -675,6 +1067,27 @@ class StorageService {
   getWorkers(): FieldWorker[] {
     const raw = localStorage.getItem(STORAGE_KEYS.WORKERS);
     return raw ? JSON.parse(raw) : MBMC_WORKERS;
+  }
+
+  updateWorkerStatus(workerId: string, status: 'Available' | 'On Job' | 'Off Duty'): void {
+    const workers = this.getWorkers();
+    const updated = workers.map((w) => (w.id === workerId ? { ...w, currentStatus: status } : w));
+    localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updated));
+    this.dispatchEvent();
+  }
+
+  getActiveWorkerSession(): FieldWorker | null {
+    const raw = localStorage.getItem('jalseva_active_worker_session');
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  setActiveWorkerSession(worker: FieldWorker | null): void {
+    if (worker) {
+      localStorage.setItem('jalseva_active_worker_session', JSON.stringify(worker));
+    } else {
+      localStorage.removeItem('jalseva_active_worker_session');
+    }
+    this.dispatchEvent();
   }
 
   // Stats

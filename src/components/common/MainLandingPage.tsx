@@ -46,7 +46,7 @@ interface MainLandingPageProps {
   stats: SystemStats;
   alerts: OutageAlert[];
   zones: WaterZone[];
-  onSelectRole: (role: 'citizen' | 'driver' | 'admin') => void;
+  onSelectRole: (role: 'citizen' | 'driver' | 'admin' | 'worker') => void;
   onOpenQuickSchedule: (zoneId?: string) => void;
   onOpenQuickTanker: (areaName?: string) => void;
   onOpenQuickComplaint: (areaName?: string) => void;
@@ -270,8 +270,8 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
               </div>
 
               {/* Marquee Headline */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
-                JalSeva: <span className="text-sky-400">हर बूंद मायने रखती है</span>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-snug text-white">
+                JalSeva: <span className="text-sky-400 font-hindi tracking-normal inline-block">हर बूंद मायने रखती है</span>
               </h1>
 
               <p className="text-base sm:text-lg text-amber-200 font-hindi font-medium">
@@ -591,14 +591,14 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-2">
           {/* PORTAL 1: CITIZEN */}
           <div
             onClick={() => onSelectRole('citizen')}
-            className="group cursor-pointer bg-white dark:bg-slate-900 p-7 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-600 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-600 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-2xl group-hover:scale-105 transition-transform shadow-sm">
+            <div className="space-y-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform shadow-sm">
                 👤
               </div>
 
@@ -606,42 +606,38 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 <span className="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400 block">
                   Public Resident Gateway
                 </span>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
                   Citizen Dashboard
                 </h3>
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Check area water supply schedules, book emergency tankers strictly for Today or Tomorrow, report pipeline leaks, and track redressal live.
+                Check supply schedules, book emergency tankers strictly for Today or Tomorrow, report leaks, and pay technician fees online.
               </p>
 
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300 font-medium pt-1">
+                <div className="flex items-center gap-1.5">
                   <span className="text-blue-500 font-bold">✓</span>
-                  <span>79 Sub-Areas Daily &amp; Weekly Timetables</span>
+                  <span>79 Sub-Areas Timetables</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-blue-500 font-bold">✓</span>
-                  <span>Flexible 250L - 15,000L &amp; CHS Multi-Tanker Fleet</span>
+                  <span>Emergency Tanker Booking</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-blue-500 font-bold">✓</span>
-                  <span>Water Meter Self-Reading &amp; Instant Bill Estimation</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-500 font-bold">✓</span>
-                  <span>Secure Citizen OTP &amp; Simulated Payment Gateway</span>
+                  <span>Technician UPI Payment</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2 group-hover:shadow-blue-500/25"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5"
               >
-                <span>Enter Citizen Portal</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                <span>Citizen Portal</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
               </button>
             </div>
           </div>
@@ -649,10 +645,10 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
           {/* PORTAL 2: DRIVER RAHUL */}
           <div
             onClick={() => onSelectRole('driver')}
-            className="group cursor-pointer bg-white dark:bg-slate-900 p-7 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-[#ea580c] dark:hover:border-orange-500 transition-all flex flex-col justify-between"
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-[#ea580c] dark:hover:border-orange-500 transition-all flex flex-col justify-between"
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#ea580c] dark:text-amber-400 flex items-center justify-center font-bold text-2xl group-hover:scale-105 transition-transform shadow-sm">
+            <div className="space-y-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/80 text-[#ea580c] dark:text-amber-400 flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform shadow-sm">
                 🚚
               </div>
 
@@ -660,49 +656,99 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 <span className="text-[10px] uppercase font-bold tracking-wider text-[#ea580c] dark:text-amber-400 block">
                   Municipal Fleet Operators
                 </span>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                  Tanker Driver Dashboard
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                  Tanker Driver Portal
                 </h3>
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Primary Driver: <strong>Rahul</strong> (Vehicle <span className="font-mono">MH-04-RH-8821</span> &bull; 9820488312). View assigned trip queues, navigate to resident gate, and verify OTP on delivery.
+                Primary Driver: <strong>Rahul</strong> (Vehicle <span className="font-mono">MH-04-RH-8821</span>). Trip dispatch queues, depot navigation, and 4-digit OTP handover.
               </p>
 
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300 font-medium pt-1">
+                <div className="flex items-center gap-1.5">
                   <span className="text-[#ea580c] font-bold">✓</span>
-                  <span>Driver Rahul &amp; Fleet Assignments</span>
+                  <span>Live Dispatch Route</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-[#ea580c] font-bold">✓</span>
-                  <span>Doorstep 4-Digit OTP Verification</span>
+                  <span>4-Digit Handshake OTP</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-[#ea580c] font-bold">✓</span>
-                  <span>Turn-by-turn Leaflet Depot Route Map</span>
+                  <span>4 Municipal Depots Hub</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                className="w-full py-3.5 bg-gradient-to-r from-[#ea580c] to-[#fd7e14] hover:from-[#c2410c] hover:to-[#ea580c] text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-gradient-to-r from-[#ea580c] to-[#fd7e14] hover:from-[#c2410c] hover:to-[#ea580c] text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5"
               >
-                <span>Enter Driver Portal</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                <span>Driver Portal</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
               </button>
             </div>
           </div>
 
-          {/* PORTAL 3: ADMIN ADARSH YADAV */}
+          {/* PORTAL 3: FIELD WORKER & PLUMBER */}
+          <div
+            onClick={() => onSelectRole('worker')}
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-indigo-600 dark:hover:border-indigo-500 transition-all flex flex-col justify-between"
+          >
+            <div className="space-y-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform shadow-sm">
+                🔧
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                  Field Maintenance Specialists
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                  Worker &amp; Plumber Desk
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Plumber &amp; water quality technicians. Receive assigned leakages and dirty water tasks, submit technical analysis, and collect payments.
+              </p>
+
+              <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300 font-medium pt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">✓</span>
+                  <span>Pipeline &amp; Leakage Tasks</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">✓</span>
+                  <span>Submit Diagnostic Report</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">✓</span>
+                  <span>Citizen UPI Fee Settlements</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5"
+              >
+                <span>Worker Portal</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+              </button>
+            </div>
+          </div>
+
+          {/* PORTAL 4: ADMIN ADARSH YADAV */}
           <div
             onClick={() => onSelectRole('admin')}
-            className="group cursor-pointer bg-white dark:bg-slate-900 p-7 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-slate-900 dark:hover:border-slate-400 transition-all flex flex-col justify-between"
+            className="group cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-slate-900 dark:hover:border-slate-400 transition-all flex flex-col justify-between"
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-2xl group-hover:scale-105 transition-transform shadow-sm">
+            <div className="space-y-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform shadow-sm">
                 🛡️
               </div>
 
@@ -710,38 +756,38 @@ export const MainLandingPage: React.FC<MainLandingPageProps> = ({
                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
                   Municipal Authority &amp; Engineering
                 </span>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
                   MBMC Admin Console
                 </h3>
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Super Admin: <strong>Adarsh Yadav</strong> (Direct Contact: <span className="font-mono">7715804452</span>). Control room dispatch, outage alerts broadcast, grievance resolution desk, and tanker Kanban.
+                Super Admin: <strong>Adarsh Yadav</strong>. Control room dispatch, outage alerts broadcast, plumber assignment desk, and tanker Kanban.
               </p>
 
-              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium pt-2">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300 font-medium pt-1">
+                <div className="flex items-center gap-1.5">
                   <span className="text-slate-900 dark:text-slate-100 font-bold">✓</span>
-                  <span>Super Admin Adarsh Yadav Desk</span>
+                  <span>Assign Plumbers &amp; Workers</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-slate-900 dark:text-slate-100 font-bold">✓</span>
-                  <span>Broadcast Outage Notices &amp; Push SMS</span>
+                  <span>Broadcast Outage Notices</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="text-slate-900 dark:text-slate-100 font-bold">✓</span>
-                  <span>Kanban Tanker Board &amp; Official Supply Report</span>
+                  <span>Kanban Fleet Dispatch Board</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
-                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition flex items-center justify-center gap-1.5"
               >
-                <span>Enter Admin Console</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                <span>Admin Console</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
               </button>
             </div>
           </div>

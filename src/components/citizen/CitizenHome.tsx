@@ -69,8 +69,8 @@ export const CitizenHome: React.FC<CitizenHomeProps> = ({
             <span className="text-amber-200 font-hindi">आपका पानी, आपकी सेवा</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            JalSeva: <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-blue-200 to-[#fd7e14]">हर बूंद मायने रखती है</span>
+          <h1 className="text-3xl sm:text-5xl font-black leading-snug">
+            JalSeva: <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-blue-200 to-[#fd7e14] font-hindi tracking-normal inline-block">हर बूंद मायने रखती है</span>
           </h1>
 
           <p className="text-sm sm:text-base text-amber-200/90 font-medium font-hindi">

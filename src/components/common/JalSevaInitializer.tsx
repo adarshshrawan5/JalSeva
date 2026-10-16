@@ -115,16 +115,16 @@ export const JalSevaInitializer: React.FC<JalSevaInitializerProps> = ({ onComple
         </div>
 
         {/* Brand Titles */}
-        <div className="mt-4 mb-2">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+        <div className="mt-4 mb-2 space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-black leading-snug">
             <span className="text-sky-400">Jal</span>
             <span className="text-[#fd7e14]">Seva</span>
             <span className="text-xl text-slate-300 font-hindi font-normal ml-2">जलसेवा</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-slate-400 mt-1 font-semibold">
+          <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
             Mira Bhayandar Municipal Corporation
           </p>
-          <p className="text-xs text-amber-300/90 font-hindi font-medium mt-1">
+          <p className="text-xs text-amber-300/90 font-hindi font-medium pt-0.5">
             &ldquo;आपका पानी, आपकी सेवा • हर बूंद मायने रखती है&rdquo;
           </p>
         </div>

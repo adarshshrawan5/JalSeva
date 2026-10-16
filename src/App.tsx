@@ -9,6 +9,7 @@ import {
   SystemStats,
   AdminUser,
   Driver,
+  FieldWorker,
   SubArea,
   CitizenUser,
 } from './types';
@@ -31,12 +32,15 @@ import { WaterMeterReader } from './components/citizen/WaterMeterReader';
 import { SupportSection } from './components/citizen/SupportSection';
 import { DriverLogin } from './components/driver/DriverLogin';
 import { DriverDashboard } from './components/driver/DriverDashboard';
+import { WorkerLogin } from './components/worker/WorkerLogin';
+import { WorkerDashboard } from './components/worker/WorkerDashboard';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminLayout, AdminTab } from './components/admin/AdminLayout';
 import { AdminDashboardHome } from './components/admin/AdminDashboardHome';
 import { AdminBroadcastManager } from './components/admin/AdminBroadcastManager';
 import { AdminScheduleManager } from './components/admin/AdminScheduleManager';
 import { AdminComplaintsDesk } from './components/admin/AdminComplaintsDesk';
+import { AdminWorkerAssignmentDashboard } from './components/admin/AdminWorkerAssignmentDashboard';
 import { AdminTankerManager } from './components/admin/AdminTankerManager';
 import { AdminAnalytics } from './components/admin/AdminAnalytics';
 import { AdminStaffManager } from './components/admin/AdminStaffManager';
@@ -51,7 +55,16 @@ import {
   WifiOff,
 } from 'lucide-react';
 
-export type AppView = 'landing' | 'citizen-login' | 'citizen' | 'driver-login' | 'driver' | 'admin-login' | 'admin';
+export type AppView =
+  | 'landing'
+  | 'citizen-login'
+  | 'citizen'
+  | 'driver-login'
+  | 'driver'
+  | 'worker-login'
+  | 'worker'
+  | 'admin-login'
+  | 'admin';
 
 export default function App() {
   // Navigation View: Default to 'landing' as requested!
@@ -64,6 +77,7 @@ export default function App() {
   const [citizenAuthMode, setCitizenAuthMode] = useState<'login' | 'register'>('login');
   const [showCitizenProfile, setShowCitizenProfile] = useState(false);
   const [driverUser, setDriverUser] = useState<Driver | null>(null);
+  const [workerUser, setWorkerUser] = useState<FieldWorker | null>(() => storageService.getActiveWorkerSession());
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
   // Storage / Reactive Database State
@@ -281,6 +295,10 @@ export default function App() {
               <AdminComplaintsDesk complaints={complaints} adminName={adminUser.name} />
             )}
 
+            {activeAdminTab === 'worker-assignment' && (
+              <AdminWorkerAssignmentDashboard complaints={complaints} adminName={adminUser.name} />
+            )}
+
             {activeAdminTab === 'tankers' && (
               <AdminTankerManager bookings={bookings} adminName={adminUser.name} />
             )}
@@ -291,6 +309,52 @@ export default function App() {
 
             {activeAdminTab === 'staff' && <AdminStaffManager />}
           </AdminLayout>
+        )}
+
+        {/* VIEW 5: FIELD WORKER & PLUMBER DASHBOARD & LOGIN */}
+        {currentView === 'worker-login' && (
+          <WorkerLogin
+            onLoginSuccess={(worker) => {
+              setWorkerUser(worker);
+              setCurrentView('worker');
+            }}
+            onBackToHome={() => setCurrentView('landing')}
+          />
+        )}
+
+        {currentView === 'worker' && workerUser && (
+          <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-6 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-blue-600 dark:text-blue-400">
+                  Field Operations Desk:
+                </span>
+                <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                  Logged in as {workerUser.name} ({workerUser.specialization})
+                </span>
+              </div>
+              <button
+                onClick={() => setCurrentView('landing')}
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
+              >
+                Landing Page &rarr;
+              </button>
+            </div>
+            <WorkerDashboard
+              worker={workerUser}
+              onLogout={() => {
+                setWorkerUser(null);
+                storageService.setActiveWorkerSession(null);
+                setCurrentView('landing');
+              }}
+              onOpenCitizenView={(complaintId) => {
+                if (complaintId) setTrackingInitialComplaintId(complaintId);
+                setTrackerMode('complaint');
+                setActiveCitizenTab('tracker');
+                setCurrentView('citizen');
+              }}
+            />
+          </div>
         )}
 
         {/* VIEW 3: CITIZEN LOGIN */}
@@ -337,6 +401,13 @@ export default function App() {
                   setCurrentView('driver-login');
                 }
               }}
+              onOpenWorker={() => {
+                if (workerUser) {
+                  setCurrentView('worker');
+                } else {
+                  setCurrentView('worker-login');
+                }
+              }}
               onOpenAdmin={() => {
                 if (adminUser) {
                   setCurrentView('admin');
@@ -346,6 +417,7 @@ export default function App() {
               }}
               isAdminLoggedIn={!!adminUser}
               isDriverLoggedIn={!!driverUser}
+              isWorkerLoggedIn={!!workerUser}
               citizenUser={citizenSession}
               onOpenCitizenProfile={() => setShowCitizenProfile(true)}
               onOpenSignIn={handleOpenSignIn}
@@ -373,7 +445,7 @@ export default function App() {
             {/* Main Body */}
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
               {currentView === 'landing' ? (
-                /* The Welcome Landing Page with 3 Role Gateways */
+                /* The Welcome Landing Page with 4 Role Gateways */
                 <MainLandingPage
                   stats={stats}
                   alerts={alerts}
@@ -387,6 +459,12 @@ export default function App() {
                         setCurrentView('driver');
                       } else {
                         setCurrentView('driver-login');
+                      }
+                    } else if (role === 'worker') {
+                      if (workerUser) {
+                        setCurrentView('worker');
+                      } else {
+                        setCurrentView('worker-login');
                       }
                     } else if (role === 'admin') {
                       if (adminUser) {

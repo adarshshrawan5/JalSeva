@@ -20,6 +20,10 @@ import {
   FileText,
   KeyRound,
   MessageSquare,
+  CreditCard,
+  DollarSign,
+  QrCode,
+  Check,
 } from 'lucide-react';
 
 interface TankerTrackerProps {
@@ -40,6 +44,22 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
   const [showReport, setShowReport] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [userRating, setUserRating] = useState<number>(0);
+  const [showOnlinePayModal, setShowOnlinePayModal] = useState<boolean>(false);
+  const [onlinePaymentProcessing, setOnlinePaymentProcessing] = useState<boolean>(false);
+  const [onlinePaymentMethod, setOnlinePaymentMethod] = useState<'upi' | 'card'>('upi');
+
+  const getTankerAmount = (b: TankerBooking): number => {
+    if (b.amountPaid && b.amountPaid > 0) return b.amountPaid;
+    if (b.isSocietyBooking) {
+      const vol = b.totalVolumeLiters || (b.tankerCount || 2) * 10000;
+      return Math.round(vol * 0.10 * 0.85) + 150;
+    }
+    const cap = b.capacity || 1000;
+    const base = cap * 0.11;
+    const fee = cap <= 1000 ? 25 : cap <= 5000 ? 50 : 100;
+    const sub = (base + fee) * 0.10;
+    return Math.max(45, Math.round(base + fee - sub));
+  };
 
   // Moving Tanker simulation along route
   const [progressFactor, setProgressFactor] = useState<number>(0.65); // 0 to 1

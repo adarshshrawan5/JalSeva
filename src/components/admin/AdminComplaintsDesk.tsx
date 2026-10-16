@@ -39,12 +39,24 @@ export const AdminComplaintsDesk: React.FC<AdminComplaintsDeskProps> = ({
   const [priorityFilter, setPriorityFilter] = useState<string>('All');
   const [zoneFilter, setZoneFilter] = useState<string>('All');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [workers, setWorkers] = useState<FieldWorker[]>(() => storageService.getWorkers());
+  const [showActiveWorkersSection, setShowActiveWorkersSection] = useState(true);
 
   // Resolution Modal State
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedWorkerId, setSelectedWorkerId] = useState<string>(MBMC_WORKERS[0].id);
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string>(() => workers[0]?.id || MBMC_WORKERS[0].id);
+  const [workerSpecialtyFilter, setWorkerSpecialtyFilter] = useState<string>('All');
+
+  // Reload workers on storage update
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setWorkers(storageService.getWorkers());
+    };
+    window.addEventListener('aqua_connect_storage_update', handleUpdate);
+    return () => window.removeEventListener('aqua_connect_storage_update', handleUpdate);
+  }, []);
 
   // Filtered complaints
   const filtered = useMemo(() => {
@@ -66,19 +78,37 @@ export const AdminComplaintsDesk: React.FC<AdminComplaintsDeskProps> = ({
     });
   }, [complaints, searchQuery, statusFilter, priorityFilter, zoneFilter]);
 
+  // Recommended specialization for selected complaint
+  const recommendedSpecialty = useMemo(() => {
+    if (!selectedComplaint) return 'Pipeline & Valve';
+    if (selectedComplaint.issueType === 'Pipeline Leak' || selectedComplaint.issueType === 'Water Logging') {
+      return 'Pipeline & Valve';
+    }
+    if (selectedComplaint.issueType === 'Contaminated Water' || selectedComplaint.issueType === 'Dirty Water') {
+      return 'Water Quality & Chemical';
+    }
+    if (selectedComplaint.issueType === 'Low Water Pressure') {
+      return 'Motor & Pump';
+    }
+    return 'General Plumber';
+  }, [selectedComplaint]);
+
   // Handle Assign Worker
-  const handleAssignWorker = () => {
+  const handleAssignWorker = (customWorker?: FieldWorker) => {
     if (!selectedComplaint) return;
-    const worker = MBMC_WORKERS.find((w) => w.id === selectedWorkerId);
-    if (!worker) return;
+    const workerToAssign = customWorker || workers.find((w) => w.id === selectedWorkerId);
+    if (!workerToAssign) return;
 
     storageService.assignComplaintWorker(
       selectedComplaint.id,
       {
-        id: worker.id,
-        name: worker.name,
-        phone: worker.phone,
-        designation: worker.specialization,
+        id: workerToAssign.id,
+        name: workerToAssign.name,
+        phone: workerToAssign.phone,
+        designation: workerToAssign.specialization,
+        avatar: workerToAssign.avatar,
+        rating: workerToAssign.rating,
+        specialization: workerToAssign.specialization,
       },
       adminName
     );
@@ -90,10 +120,13 @@ export const AdminComplaintsDesk: React.FC<AdminComplaintsDeskProps> = ({
             ...prev,
             status: 'Assigned',
             assignedWorker: {
-              id: worker.id,
-              name: worker.name,
-              phone: worker.phone,
-              designation: worker.specialization,
+              id: workerToAssign.id,
+              name: workerToAssign.name,
+              phone: workerToAssign.phone,
+              designation: workerToAssign.specialization,
+              avatar: workerToAssign.avatar,
+              rating: workerToAssign.rating,
+              specialization: workerToAssign.specialization,
             },
           }
         : null
@@ -182,6 +215,118 @@ export const AdminComplaintsDesk: React.FC<AdminComplaintsDeskProps> = ({
           <Download className="w-4 h-4" />
           <span>Export CSV</span>
         </button>
+      </div>
+
+      {/* Section: Field Specialists Working on Citizen Reports */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+              <Wrench className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-black text-base text-slate-900 dark:text-white">
+                Field Specialists &amp; Active Deployments
+              </h3>
+              <p className="text-xs text-slate-500">
+                Live status of municipal plumbers and water quality technicians working on citizen complaints.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowActiveWorkersSection(!showActiveWorkersSection)}
+            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+          >
+            {showActiveWorkersSection ? 'Collapse Roster' : 'Expand Roster'}
+          </button>
+        </div>
+
+        {showActiveWorkersSection && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+            {workers.map((worker) => {
+              // Find active complaints assigned to this worker
+              const activeJobs = complaints.filter(
+                (c) => c.assignedWorker?.id === worker.id && c.status !== 'Resolved'
+              );
+              const latestJob = activeJobs[0];
+
+              return (
+                <div
+                  key={worker.id}
+                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={worker.avatar}
+                        alt={worker.name}
+                        className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                      />
+                      <div>
+                        <strong className="text-xs font-bold text-slate-900 dark:text-white block">
+                          {worker.name}
+                        </strong>
+                        <span className="text-[10px] text-slate-500 block">
+                          {worker.specialization} &bull; {worker.zoneId.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                        activeJobs.length > 0
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                      }`}
+                    >
+                      {activeJobs.length > 0 ? `● ${activeJobs.length} Active Job(s)` : '● Ready / Free'}
+                    </span>
+                  </div>
+
+                  {/* Active Job Details */}
+                  {latestJob ? (
+                    <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                          {latestJob.id}
+                        </span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300 text-[10px]">
+                          {latestJob.status}
+                        </span>
+                      </div>
+                      <p className="font-bold text-slate-900 dark:text-white truncate">
+                        {latestJob.issueType} &bull; {latestJob.areaName}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">
+                        Complainant: {latestJob.citizenName} (+91 {latestJob.phone})
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 text-center">
+                      Available for immediate dispatch
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-[11px] pt-1">
+                    <span className="flex items-center gap-1 text-amber-500 font-bold">
+                      <Star className="w-3 h-3 fill-amber-400" />
+                      {worker.rating} ({worker.completedTotal} jobs)
+                    </span>
+
+                    <a
+                      href={`tel:${worker.phone}`}
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-bold flex items-center gap-1"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>{worker.phone}</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Filters & Search Row */}
@@ -473,58 +618,148 @@ export const AdminComplaintsDesk: React.FC<AdminComplaintsDeskProps> = ({
         </div>
       )}
 
-      {/* Worker Assignment Modal */}
+      {/* Worker Assignment Modal with Smart Recommendation */}
       {showAssignModal && selectedComplaint && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-            <h4 className="font-bold text-base text-slate-900 dark:text-white">
-              Assign Field Plumber to {selectedComplaint.id}
-            </h4>
-            <p className="text-xs text-slate-500">
-              System auto-lists certified MBMC pipeline and quality engineers for this zone.
-            </p>
-
-            <div className="space-y-2 max-h-56 overflow-y-auto">
-              {MBMC_WORKERS.map((worker) => (
-                <label
-                  key={worker.id}
-                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer text-xs ${
-                    selectedWorkerId === worker.id
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-950 font-bold'
-                      : 'border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="worker"
-                      checked={selectedWorkerId === worker.id}
-                      onChange={() => setSelectedWorkerId(worker.id)}
-                    />
-                    <div>
-                      <strong className="block">{worker.name}</strong>
-                      <span className="text-[10px] text-slate-500">{worker.specialization}</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono">
-                    Load: {worker.activeComplaints}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
+                  MBMC Field Staff Dispatch
+                </span>
+                <h4 className="font-black text-lg text-slate-900 dark:text-white">
+                  Assign Specialist to {selectedComplaint.id}
+                </h4>
+              </div>
               <button
                 onClick={() => setShowAssignModal(false)}
-                className="px-4 py-2 border rounded-xl text-xs"
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold"
               >
-                Cancel
+                ✕
               </button>
+            </div>
+
+            {/* Smart Recommendation Banner */}
+            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-200 dark:border-blue-900 flex items-start gap-3 text-xs">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold">
+                🎯
+              </div>
+              <div>
+                <strong className="text-blue-900 dark:text-blue-200 font-bold block">
+                  Smart Match for &quot;{selectedComplaint.issueType}&quot;
+                </strong>
+                <p className="text-blue-700 dark:text-blue-300 text-[11px] mt-0.5">
+                  Recommended Specialty:{' '}
+                  <span className="font-bold underline">{recommendedSpecialty}</span>.
+                  Technicians with this specialty have specialized tools and certified parts.
+                </p>
+              </div>
+            </div>
+
+            {/* Specialty Filter Chips */}
+            <div className="flex flex-wrap gap-1.5 text-[11px]">
+              {['All', 'Pipeline & Valve', 'Water Quality & Chemical', 'Motor & Pump', 'General Plumber'].map(
+                (spec) => (
+                  <button
+                    key={spec}
+                    type="button"
+                    onClick={() => setWorkerSpecialtyFilter(spec)}
+                    className={`px-2.5 py-1 rounded-xl font-bold transition cursor-pointer ${
+                      workerSpecialtyFilter === spec
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    {spec}
+                  </button>
+                )
+              )}
+            </div>
+
+            {/* Worker Roster List */}
+            <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+              {workers
+                .filter((w) => workerSpecialtyFilter === 'All' || w.specialization === workerSpecialtyFilter)
+                .map((worker) => {
+                  const isRecommended = worker.specialization === recommendedSpecialty;
+                  const isSelected = selectedWorkerId === worker.id;
+                  return (
+                    <div
+                      key={worker.id}
+                      onClick={() => setSelectedWorkerId(worker.id)}
+                      className={`p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/50 ring-2 ring-blue-500/30'
+                          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={worker.avatar}
+                          alt={worker.name}
+                          className="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <strong className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                              {worker.name}
+                            </strong>
+                            {isRecommended && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 shrink-0">
+                                Best Match
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-slate-500 block truncate">
+                            {worker.specialization} &bull; {worker.zoneId.toUpperCase()}
+                          </span>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                            <span className="flex items-center gap-0.5 text-amber-500 font-bold">
+                              <Star className="w-3 h-3 fill-amber-400" />
+                              {worker.rating}
+                            </span>
+                            <span>&bull;</span>
+                            <span>{worker.completedTotal} jobs done</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full block mb-1.5 ${
+                            (worker.activeComplaints || 0) === 0
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
+                          }`}
+                        >
+                          ● {worker.activeComplaints || 0} active
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssignWorker(worker);
+                          }}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[11px] shadow-xs transition"
+                        >
+                          Assign
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t">
+              <span className="text-[11px] text-slate-500">
+                Dispatches job alert to technician&apos;s Worker Dashboard immediately.
+              </span>
               <button
-                onClick={handleAssignWorker}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs"
+                type="button"
+                onClick={() => handleAssignWorker()}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition"
               >
-                Assign & Dispatch SMS
+                Confirm Assignment
               </button>
             </div>
           </div>

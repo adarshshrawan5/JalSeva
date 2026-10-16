@@ -19,12 +19,12 @@ import {
   Droplets,
   ChevronDown,
   Layers,
-  Bell,
   LogIn,
   UserPlus,
   LogOut,
+  Wrench,
+  ChevronRight,
 } from 'lucide-react';
-import { NotificationsDrawer } from './NotificationsDrawer';
 
 export type ActiveTab =
   | 'home'
@@ -40,9 +40,11 @@ interface NavbarProps {
   setActiveTab: (tab: ActiveTab) => void;
   onOpenLanding: () => void;
   onOpenDriver: () => void;
+  onOpenWorker?: () => void;
   onOpenAdmin: () => void;
   isAdminLoggedIn?: boolean;
   isDriverLoggedIn?: boolean;
+  isWorkerLoggedIn?: boolean;
   citizenUser?: CitizenUser | null;
   onOpenCitizenProfile?: () => void;
   onOpenSignIn?: () => void;
@@ -56,9 +58,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenLanding,
   onOpenDriver,
+  onOpenWorker,
   onOpenAdmin,
   isAdminLoggedIn,
   isDriverLoggedIn,
+  isWorkerLoggedIn,
   citizenUser,
   onOpenCitizenProfile,
   onOpenSignIn,
@@ -70,7 +74,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [portalsDropdownOpen, setPortalsDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const moreRef = useRef<HTMLDivElement>(null);
   const portalsRef = useRef<HTMLDivElement>(null);
@@ -92,6 +95,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Lock body scroll when big mobile navigation is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const primaryNavItems = [
     { id: 'home' as ActiveTab, label: t.navHome, icon: Home },
@@ -127,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop Navigation Links (Primary + More Dropdown) */}
-          <nav className="hidden lg:flex items-center gap-1.5">
+          <nav className="hidden 2xl:flex items-center gap-1.5 shrink-0">
             {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -135,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                       : item.highlight
@@ -144,7 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   <Icon
-                    className={`w-3.5 h-3.5 ${
+                    className={`w-3.5 h-3.5 shrink-0 ${
                       isActive
                         ? 'text-white'
                         : item.highlight
@@ -204,9 +219,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right Action Utilities & Module Gateways */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Dark & Light Theme Switcher - Always Visible */}
+            <ThemeToggle />
+
             {/* Multilingual Selector: EN | मराठी | हिंदी */}
-            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <div className="hidden 2xl:flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold shrink-0">
               <button
                 onClick={() => setLanguage('en')}
                 className={`px-2 py-1 rounded-lg transition text-[11px] ${
@@ -246,7 +264,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {onReplayInitializer && (
               <button
                 onClick={onReplayInitializer}
-                className="hidden xl:flex p-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-800 transition"
+                className="hidden xl:flex p-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-slate-800 transition shrink-0"
                 title="Replay JalSeva Startup Initializer Animation"
               >
                 <Droplets className="w-4 h-4 animate-pulse" />
@@ -256,36 +274,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* 24x7 Helpline Pill */}
             <a
               href="tel:1800222026"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 transition"
+              className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 transition shrink-0 whitespace-nowrap"
               title="24x7 JalSeva Water Emergency Helpline"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-[#fd7e14] animate-bounce" />
+              <PhoneCall className="w-3.5 h-3.5 text-[#fd7e14] animate-bounce shrink-0" />
               <span>1800-22-2026</span>
             </a>
 
 
-            {/* Automated Alerts & Push Notifications Bell */}
-            <button
-              onClick={() => setNotificationsOpen(true)}
-              className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-              title="View Water Supply & Tanker Notifications"
-              aria-label="Alerts and Notifications"
-            >
-              <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-              <span className="absolute top-1 right-1 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-              </span>
-            </button>
-
             {/* Modules Dropdown (Driver & Admin) for Clean Header Decluttering */}
-            <div className="relative hidden md:block" ref={portalsRef}>
+            <div className="relative hidden md:block shrink-0" ref={portalsRef}>
               <button
                 onClick={() => setPortalsDropdownOpen(!portalsDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-700 transition shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-700 transition shadow-sm whitespace-nowrap cursor-pointer"
                 title="Switch Portals (Driver & Admin)"
               >
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="hidden sm:inline">Portals</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${portalsDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -300,19 +304,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onOpenDriver();
                       setPortalsDropdownOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 transition text-left"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 transition text-left cursor-pointer"
                   >
-                    <Truck className="w-4 h-4" />
+                    <Truck className="w-4 h-4 shrink-0" />
                     <span>Driver Portal {isDriverLoggedIn && '(Active)'}</span>
                   </button>
+                  {onOpenWorker && (
+                    <button
+                      onClick={() => {
+                        onOpenWorker();
+                        setPortalsDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition text-left border-t border-slate-100 dark:border-slate-800 cursor-pointer"
+                    >
+                      <Wrench className="w-4 h-4 shrink-0" />
+                      <span>Worker / Plumber Portal {isWorkerLoggedIn && '(Active)'}</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       onOpenAdmin();
                       setPortalsDropdownOpen(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition text-left border-t border-slate-100 dark:border-slate-800"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition text-left border-t border-slate-100 dark:border-slate-800 cursor-pointer"
                   >
-                    <Shield className="w-4 h-4" />
+                    <Shield className="w-4 h-4 shrink-0" />
                     <span>Admin Desk {isAdminLoggedIn && '(Online)'}</span>
                   </button>
                 </div>
@@ -323,25 +339,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             {!citizenUser ? (
               <button
                 onClick={onOpenSignIn || onOpenSignUp}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 transition shadow-xs shadow-blue-500/20 cursor-pointer shrink-0"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 active:scale-95 transition shadow-xs shadow-blue-500/20 cursor-pointer shrink-0 whitespace-nowrap"
                 title="Sign In or Register new Citizen account"
               >
                 <LogIn className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline whitespace-nowrap">{t.signInOrSignUp}</span>
-                <span className="xs:hidden whitespace-nowrap">Sign In</span>
+                <span className="hidden lg:inline whitespace-nowrap">{t.signInOrSignUp}</span>
+                <span className="lg:hidden whitespace-nowrap">Sign In</span>
               </button>
             ) : (
               /* Authenticated Resident User Dropdown */
-              <div className="relative" ref={userRef}>
+              <div className="relative shrink-0" ref={userRef}>
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition shadow-xs cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition shadow-xs cursor-pointer whitespace-nowrap"
                   title={`Logged in as ${citizenUser.name}`}
                 >
-                  <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                     {citizenUser.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="max-w-[70px] sm:max-w-[100px] truncate text-[11px] sm:text-xs">
+                  <span className="max-w-[70px] sm:max-w-[110px] truncate text-xs whitespace-nowrap">
                     {citizenUser.name.split(' ')[0]}
                   </span>
                   <ChevronDown className={`w-3 h-3 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
@@ -374,7 +390,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           }}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left cursor-pointer"
                         >
-                          <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                           <span>{t.myProfile}</span>
                         </button>
                       )}
@@ -386,7 +402,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left cursor-pointer"
                       >
-                        <Search className="w-3.5 h-3.5 text-amber-500" />
+                        <Search className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                         <span>My Bookings &amp; Grievances</span>
                       </button>
 
@@ -398,7 +414,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           }}
                           className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition text-left border-t border-slate-100 dark:border-slate-800 mt-1 pt-2 cursor-pointer"
                         >
-                          <LogOut className="w-3.5 h-3.5" />
+                          <LogOut className="w-3.5 h-3.5 shrink-0" />
                           <span>{t.signOut}</span>
                         </button>
                       )}
@@ -408,121 +424,128 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            {/* Dark & Light Theme Switcher */}
-            <ThemeToggle />
-
-            {/* Mobile Menu Hamburger */}
+            {/* Mobile Menu Hamburger / Three Row Menu Button - Always Visible on Mobile, Tablet, and Laptop */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="2xl:hidden p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0 cursor-pointer shadow-xs"
               aria-label="Open navigation menu"
+              title="Open Navigation Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-rose-600" /> : <Menu className="w-5 h-5 text-slate-800 dark:text-slate-100" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu: Fixed full height overlay with smooth scrolling */}
+      {/* Big Full-Screen Mobile Navigation Menu (Takeover Drawer) */}
       {mobileMenuOpen && (
-        <div className="fixed lg:hidden inset-x-0 top-20 bottom-0 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-4 pt-4 pb-24 space-y-2.5 shadow-2xl z-50 overflow-y-auto animate-in fade-in">
-          {/* Mobile Language Selector */}
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 mb-1">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">भाषा / Language:</span>
-            <div className="flex items-center gap-1">
-              {(['en', 'mr', 'hi'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
-                    language === lang
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {lang === 'en' ? 'EN' : lang === 'mr' ? 'मराठी' : 'हिंदी'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-xs font-semibold text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
-            <span>Citizen Navigation • जलसेवा</span>
-            <button
+        <div className="fixed inset-0 z-50 xl:hidden h-[100dvh] w-full bg-white dark:bg-slate-950 flex flex-col overflow-hidden animate-in fade-in duration-200">
+          {/* Mobile Menu Top App Bar */}
+          <div className="h-20 px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md">
+            <div
               onClick={() => {
                 onOpenLanding();
                 setMobileMenuOpen(false);
               }}
-              className="text-blue-600 font-bold text-xs"
+              className="cursor-pointer"
             >
-              Landing Page
-            </button>
+              <JalSevaLogo size="sm" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 flex items-center justify-center transition cursor-pointer"
+                aria-label="Close navigation menu"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
-          {[...primaryNavItems, ...secondaryNavItems].map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : item.id === 'tanker-book'
-                    ? 'bg-orange-50 dark:bg-orange-950/50 text-[#ea580c] font-bold'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+          {/* Scrollable Big Content Body */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6 pb-36 overscroll-contain">
+            {/* 1. Large Language Switcher */}
+            <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span>भाषा निवडा / Select Language:</span>
+                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase">
+                  MBMC Multilingual
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { code: 'en', label: 'English', sub: 'English' },
+                  { code: 'mr', label: 'मराठी', sub: 'Marathi' },
+                  { code: 'hi', label: 'हिंदी', sub: 'Hindi' },
+                ] as const).map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setLanguage(lang.code)}
+                    className={`py-2 px-3 rounded-xl text-center font-bold text-xs transition cursor-pointer ${
+                      language === lang.code
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-2 ring-blue-400'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <div className="text-sm">{lang.label}</div>
+                    <div className="text-[9px] opacity-80">{lang.sub}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-            {/* Citizen Account Management in Mobile Menu */}
+            {/* 2. Citizen Resident Status Card */}
             {!citizenUser ? (
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <span>{t.citizenAccount} • नागरिक</span>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md font-semibold">
-                    GPS Ready
+              <div className="p-4 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-200" />
+                    <span className="font-bold text-xs uppercase tracking-wider text-blue-100">
+                      Citizen Resident Mode
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white">
+                    Guest Active
                   </span>
                 </div>
+                <p className="text-xs text-blue-100 leading-relaxed">
+                  Sign in with your 10-digit mobile number for 1-tap tanker booking, instant grievance updates, and meter tariffs.
+                </p>
                 <button
                   onClick={() => {
                     (onOpenSignIn || onOpenSignUp)?.();
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white text-xs font-bold transition shadow-sm shadow-blue-500/25"
+                  className="w-full py-3 rounded-2xl bg-white text-blue-700 hover:bg-blue-50 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition"
                 >
-                  <LogIn className="w-4 h-4" />
-                  <span>{t.signInOrSignUp}</span>
+                  <LogIn className="w-4 h-4 text-blue-600" />
+                  <span>{t.signInOrSignUp} (Mobile Login)</span>
                 </button>
               </div>
             ) : (
-              <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 space-y-2.5">
+              <div className="p-4 rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20 border border-blue-200 dark:border-blue-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white font-black text-base flex items-center justify-center shadow-md">
                       {citizenUser.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                    <div>
+                      <h4 className="font-black text-sm text-slate-900 dark:text-white">
                         {citizenUser.name}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium">
+                        +91 {citizenUser.phone} {citizenUser.areaName ? `• ${citizenUser.areaName}` : ''}
                       </p>
-                      <p className="text-[10px] text-slate-500 truncate">+91 {citizenUser.phone}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold px-1.5 py-0.5 rounded-md">
-                    Active
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    Verified
                   </span>
                 </div>
+
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   {onOpenCitizenProfile && (
                     <button
@@ -530,7 +553,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onOpenCitizenProfile();
                         setMobileMenuOpen(false);
                       }}
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-blue-600 dark:text-blue-400"
+                      className="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1.5"
                     >
                       <User className="w-3.5 h-3.5" />
                       <span>{t.myProfile}</span>
@@ -542,7 +565,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onLogoutCitizen();
                         setMobileMenuOpen(false);
                       }}
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 dark:text-rose-400"
+                      className="py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1.5"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>{t.signOut}</span>
@@ -552,51 +575,344 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            <button
-              onClick={() => {
-                onOpenDriver();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-100 dark:bg-orange-950 text-[#ea580c] dark:text-amber-300 font-bold text-xs"
-            >
-              <Truck className="w-4 h-4" />
-              <span>Login as Tanker Driver</span>
-            </button>
+            {/* 3. Big Primary Civic Services Navigation */}
+            <div className="space-y-2.5">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+                Citizen Civic Services • नागरी सेवा
+              </div>
 
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs"
-            >
-              <Shield className="w-4 h-4 text-emerald-400" />
-              <span>Switch to MBMC Admin Desk</span>
-            </button>
+              {/* Book Tanker Big Card */}
+              <button
+                onClick={() => {
+                  setActiveTab('tanker-book');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'tanker-book'
+                    ? 'bg-orange-500 text-white shadow-lg border-orange-500'
+                    : 'bg-orange-50/70 dark:bg-orange-950/30 border-orange-200 dark:border-orange-900/60 hover:border-orange-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'tanker-book' ? 'bg-white/20 text-white' : 'bg-orange-500 text-white shadow-md'
+                  }`}>
+                    <Truck className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'tanker-book' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navBookTanker} (Emergency)
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'tanker-book' ? 'text-orange-100' : 'text-slate-500'
+                    }`}>
+                      2,000L - 10,000L with live GPS tracking
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className={`w-5 h-5 shrink-0 ${
+                  activeTab === 'tanker-book' ? 'text-white' : 'text-orange-500'
+                }`} />
+              </button>
 
-            <button
-              onClick={() => {
-                setNotificationsOpen(true);
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold text-xs"
-            >
-              <Bell className="w-4 h-4 text-blue-600" />
-              <span>Live Water Supply & Tanker Alerts</span>
-            </button>
+              {/* Report Grievance Big Card */}
+              <button
+                onClick={() => {
+                  setActiveTab('complaint-file');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'complaint-file'
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-600'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'complaint-file' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400'
+                  }`}>
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'complaint-file' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navReportGrievance}
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'complaint-file' ? 'text-blue-100' : 'text-slate-500'
+                    }`}>
+                      Water leaks, dirty water, low pressure
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+              </button>
+
+              {/* Track Status Big Card */}
+              <button
+                onClick={() => {
+                  setActiveTab('tracker');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'tracker'
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-600'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'tracker' ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                  }`}>
+                    <Search className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'tracker' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navTrackStatus}
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'tracker' ? 'text-blue-100' : 'text-slate-500'
+                    }`}>
+                      Live technician ETA, analysis &amp; payment
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+              </button>
+
+              {/* Water Schedule Big Card */}
+              <button
+                onClick={() => {
+                  setActiveTab('schedule');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'schedule'
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-600'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'schedule' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+                  }`}>
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'schedule' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navSchedule}
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'schedule' ? 'text-blue-100' : 'text-slate-500'
+                    }`}>
+                      Mira-Bhayandar ward timings &amp; pressure
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+              </button>
+
+              {/* Meter Reading Big Card */}
+              <button
+                onClick={() => {
+                  setActiveTab('meter-reading');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'meter-reading'
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-600'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'meter-reading' ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400'
+                  }`}>
+                    <Gauge className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'meter-reading' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navMeterReading}
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'meter-reading' ? 'text-blue-100' : 'text-slate-500'
+                    }`}>
+                      Submit meter photo &amp; verify consumption
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+              </button>
+
+              {/* Ward Directory & Support */}
+              <button
+                onClick={() => {
+                  setActiveTab('support');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between gap-3 cursor-pointer ${
+                  activeTab === 'support'
+                    ? 'bg-blue-600 text-white shadow-lg border-blue-600'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    activeTab === 'support' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}>
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className={`block text-sm font-black leading-snug ${
+                      activeTab === 'support' ? 'text-white' : 'text-slate-900 dark:text-white'
+                    }`}>
+                      {t.navWardDirectory} &amp; Support
+                    </strong>
+                    <span className={`text-xs block leading-relaxed ${
+                      activeTab === 'support' ? 'text-blue-100' : 'text-slate-500'
+                    }`}>
+                      Ward executive engineers &amp; emergency helplines
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+              </button>
+            </div>
+
+            {/* 4. Multi-Role Portals & Operations Switcher */}
+            <div className="space-y-2.5 pt-2">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+                MBMC Municipal Portals • कर्मचारी विभाग
+              </div>
+
+              {/* Field Worker & Plumber Desk */}
+              {onOpenWorker && (
+                <button
+                  onClick={() => {
+                    onOpenWorker();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 text-left flex items-center justify-between gap-3 cursor-pointer hover:bg-blue-100 transition shadow-xs"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                    <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                      <Wrench className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <strong className="block text-sm font-black text-slate-900 dark:text-white leading-snug">
+                          Field Worker &amp; Plumber Desk
+                        </strong>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-200 dark:bg-blue-900 text-blue-800 dark:text-blue-200 shrink-0">
+                          Active
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-500 block leading-relaxed mt-0.5">
+                        Accept assigned tasks, submit diagnostics &amp; track fees
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-blue-600 shrink-0" />
+                </button>
+              )}
+
+              {/* Tanker Driver Portal */}
+              <button
+                onClick={() => {
+                  onOpenDriver();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800/80 text-left flex items-center justify-between gap-3 cursor-pointer hover:bg-orange-100 transition shadow-xs"
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className="w-11 h-11 rounded-2xl bg-orange-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                    <Truck className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className="block text-sm font-black text-slate-900 dark:text-white leading-snug">
+                      Tanker Driver Fleet Portal
+                    </strong>
+                    <span className="text-xs text-slate-500 block leading-relaxed mt-0.5">
+                      GPS turn-by-turn routing &amp; delivery verification
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-orange-600 shrink-0" />
+              </button>
+
+              {/* MBMC Admin Desk */}
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full p-4 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white text-left flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-800 transition shadow-md"
+              >
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-slate-950 flex items-center justify-center shrink-0 font-bold">
+                    <Shield className="w-5 h-5 text-slate-950" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <strong className="block text-sm font-black leading-snug">
+                      MBMC Admin Operations Center
+                    </strong>
+                    <span className="text-xs text-slate-300 block leading-relaxed mt-0.5">
+                      Worker assignment, grievance triage &amp; analytics
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-emerald-400 shrink-0" />
+              </button>
+
+              {/* Public Welcome Landing Page */}
+              <button
+                onClick={() => {
+                  onOpenLanding();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-center font-bold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                ← Back to Welcome Landing Hub
+              </button>
+            </div>
+
+            {/* 5. 24x7 Emergency Water Helpline Call Card */}
+            <div className="p-4 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+                  <PhoneCall className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">
+                    24x7 Water Emergency Helpline
+                  </span>
+                  <strong className="text-sm font-black text-slate-900 dark:text-white">
+                    1800-22-2026 / 022-28192828
+                  </strong>
+                </div>
+              </div>
+
+              <a
+                href="tel:1800222026"
+                className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 shadow-sm"
+              >
+                Call Now
+              </a>
+            </div>
 
           </div>
         </div>
       )}
 
-      {/* Automated SMS & FCM Push Notification Drawer */}
-      <NotificationsDrawer
-        isOpen={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        onSelectBooking={() => {
-          setActiveTab('tracker');
-        }}
-      />
     </header>
   );
 };

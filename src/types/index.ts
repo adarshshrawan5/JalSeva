@@ -81,6 +81,32 @@ export interface ComplaintTimelineStep {
   actor: string;
 }
 
+export interface WorkAnalysis {
+  diagnosis: string;
+  materialsUsed?: string[];
+  laborTimeHours?: number;
+  serviceFee: number;
+  partsCost?: number;
+  totalAmount: number;
+  completedAt: string;
+  analysisNotes: string;
+  beforeAfterNote?: string;
+  waterQualityReading?: {
+    ppm?: number;
+    ph?: number;
+    turbidity?: string;
+  };
+}
+
+export interface WorkerPaymentDetails {
+  amount: number;
+  method: 'UPI' | 'Card' | 'Cash';
+  transactionId: string;
+  paidAt: string;
+  payerName?: string;
+  upiId?: string;
+}
+
 export interface Complaint {
   id: string; // CMP2026100701
   citizenName: string;
@@ -103,7 +129,13 @@ export interface Complaint {
     name: string;
     phone: string;
     designation: string;
+    avatar?: string;
+    rating?: number;
+    specialization?: string;
   };
+  workAnalysis?: WorkAnalysis;
+  paymentStatus?: 'Pending' | 'Paid' | 'Waived';
+  paymentDetails?: WorkerPaymentDetails;
   resolutionNotes?: string;
   resolvedAt?: string;
   createdAt: string;
@@ -231,6 +263,10 @@ export interface FieldWorker {
   completedTotal: number;
   rating: number;
   avatar: string;
+  pin?: string;
+  currentStatus?: 'Available' | 'On Job' | 'Off Duty';
+  skills?: string[];
+  experienceYears?: number;
 }
 
 export interface CitizenUser {

@@ -65,19 +65,31 @@ The application bridges citizens, field engineers, and emergency tanker drivers 
 - **Handover Security**: Generates a cryptographically random 4-digit Delivery OTP required by the driver to complete the order.
 - **Live Fleet Tracking**: Displays moving truck coordinates, driver contact details, vehicle registration, and estimated arrival times on an interactive Leaflet map.
 
-### 3. Grievance Redressal Desk
+### 3. Grievance Redressal Desk & Smart Field Worker Dispatch
 - **Incident Categorization**: Pipeline Leaks, Contaminated Water, Low Pressure, Supply Outages, Water Logging, Dirty Water, and Meter Faults.
-- **GPS Tagging & Evidence Upload**: Captures client geolocation coordinates and allows photo proof uploads.
+- **Admin Smart Matching**: Recommends certified plumbers and water quality specialists based on issue type (e.g. Pipeline & Valve specialists for leaks; Water Quality technicians for turbidity and contamination).
+- **Active Deployments Roster**: Dedicated dashboard section tracking which technician is currently deployed on which citizen ticket in real time.
 - **Lifecycle Tracking**: Ticket state machine (`Pending` → `Assigned` → `In Progress` → `Resolved` → `Reopened`) with field worker assignment, audit notes, resolution timestamping, and 5-star citizen ratings.
 
-### 4. Supply Timetable & Outage Broadcasts
+### 4. Field Worker & Plumber Portal (`WorkerDashboard.tsx`)
+- **Direct Grievance Dispatch**: Technicians view assigned citizen tickets with live phone dialer, address landmarks, and citizen photo evidence.
+- **Trip & Repair Execution**: Single-tap actions to update job status (`Start Travel (En Route)` → `Arrived on Site & Begin Repair`).
+- **Technical Work Analysis Docket (`WorkAnalysisModal.tsx`)**:
+  - Root-cause diagnosis documentation
+  - Hardware & spare parts tracking (e.g., HDPE pipe sleeves, CPVC valves, Teflon seals)
+  - Chemical potability and water pressure assay readings (PPM, pH, Turbidity)
+  - Base municipal labor fee + parts cost calculation
+- **Citizen Service Settlement & Payment Handshake**: Citizens settle the technician's service fee directly via **UPI QR Code**, Cash on site, or Card, with instant generation of an official MBMC e-Receipt.
+
+### 5. Supply Timetable & Outage Broadcasts
 - **Hierarchy Navigation**: 4 Municipal Zones → 79 Local Sub-Areas → Street Localities.
 - **Supply Countdown**: Real-time countdown timer to the next scheduled valve release.
 - **Administrative Broadcaster**: Emergency pipeline maintenance notices with start/end windows, affected ward tags, and simulated SMS/Push alert dispatch.
 
-### 5. Multi-Role Authentication & Access Control
+### 6. Multi-Role Authentication & Access Control
 - **Citizen Access**: Phone/name profile login or 1-click Google Sign-In via Firebase Auth.
 - **Fleet Driver Access**: Vehicle number and 4-digit PIN authentication with dedicated dispatch queue.
+- **Field Worker & Plumber Access**: Technician ID / Phone and 4-digit PIN (`1234`) with dedicated mobile-responsive repair console.
 - **Municipal Administrator Access**: Role-based access (`Super Admin`, `Zone Manager`, `Field Officer`) with timetable editors, grievance consoles, and staff rosters.
 
 ---
@@ -239,7 +251,15 @@ git push -u origin main
 - **Suresh Patil**: Vehicle `MH-04-EF-9012` | Depot: Bhayandar West | PIN: `1234`
 - **Francis Fernandes**: Vehicle `MH-04-GH-3456` | Depot: Uttan Coastal | PIN: `1234`
 
-### 3. MBMC Admin Console
+### 3. Field Worker & Plumber Portal
+- **Suresh Patil** (`wrk-1`): Phone: `9820511984` | Specialization: Pipeline & Valve | PIN: `1234`
+- **Deepak Salvi** (`wrk-4`): Phone: `9821944321` | Specialization: Water Quality & Chemical | PIN: `1234`
+- **Manoj Kamble** (`wrk-2`): Phone: `9819166520` | Specialization: Motor & Pump | PIN: `1234`
+- **Dinesh Yadav** (`wrk-3`): Phone: `9833822109` | Specialization: General Plumber | PIN: `1234`
+- **Prashant More** (`wrk-5`): Phone: `9819077412` | Specialization: Pipeline & Valve | PIN: `1234`
+- *Quick 1-tap profile selection available on worker login screen.*
+
+### 4. MBMC Admin Console
 - **Super Administrator**: `adarsh.yadav@mbmc.gov.in` (Employee ID: `MBMC-WTR-001`, PIN/Pass: `mbmc@2026`)
 - **Zone Manager**: `zonemanager@mbmc.gov.in` (Pass: `mbmc@2026`)
 - **Field Officer**: `fieldofficer@mbmc.gov.in` (Pass: `mbmc@2026`)

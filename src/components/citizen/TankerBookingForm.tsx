@@ -153,7 +153,17 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
 
   // Payment Options & Simulation State
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'netbanking' | 'card' | 'cash'>('upi');
+  const [upiMode, setUpiMode] = useState<'qr' | 'apps' | 'id'>('qr');
+  const [upiApp, setUpiApp] = useState<'gpay' | 'phonepe' | 'paytm' | 'bhim' | 'cred'>('gpay');
+  const [upiIdInput, setUpiIdInput] = useState<string>('citizen@okhdfcbank');
+  const [upiIdVerified, setUpiIdVerified] = useState<boolean>(true);
   const [selectedBank, setSelectedBank] = useState<string>('State Bank of India');
+  const [netBankingUserId, setNetBankingUserId] = useState<string>('CITIZEN_MBMC_9820');
+  const [cardNumber, setCardNumber] = useState<string>('4532 8920 1142 4242');
+  const [cardExpiry, setCardExpiry] = useState<string>('12/28');
+  const [cardCvv, setCardCvv] = useState<string>('891');
+  const [cardHolder, setCardHolder] = useState<string>('Sunil Merchant');
+  const [cardNetwork, setCardNetwork] = useState<'rupay' | 'visa' | 'mastercard'>('rupay');
   const [paymentProcessingStage, setPaymentProcessingStage] = useState<'idle' | 'connecting' | 'authorizing' | 'success'>('idle');
   const [simulatedTxnId, setSimulatedTxnId] = useState<string>('');
 
@@ -378,7 +388,7 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
 
     // If Doorstep Cash/OTP, skip gateway spinner
     if (paymentMethod === 'cash') {
-      finalizeBooking('Cash on Delivery (Doorstep OTP)', txnRef, tariff.finalAmount);
+      finalizeBooking('Cash on Delivery (Doorstep Decanting)', txnRef, tariff.finalAmount, true);
       return;
     }
 
@@ -403,15 +413,22 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
     }, 1500);
 
     setTimeout(() => {
-      let methodLabel = 'UPI / QR Code';
-      if (paymentMethod === 'netbanking') methodLabel = `Net Banking (${selectedBank})`;
-      if (paymentMethod === 'card') methodLabel = 'Debit/Credit Card (RuPay/Visa)';
+      let methodLabel = 'UPI / QR Code (mbmc.water@sbi)';
+      if (paymentMethod === 'upi') {
+        if (upiMode === 'apps') methodLabel = `UPI / ${upiApp.toUpperCase()} App`;
+        else if (upiMode === 'id') methodLabel = `UPI / VPA (${upiIdInput || 'citizen@upi'})`;
+        else methodLabel = 'UPI / BharatQR (mbmc.water@sbi)';
+      } else if (paymentMethod === 'netbanking') {
+        methodLabel = `Net Banking (${selectedBank})`;
+      } else if (paymentMethod === 'card') {
+        methodLabel = `${cardNetwork.toUpperCase()} Debit/Credit Card (•••• ${cardNumber.replace(/\s/g, '').slice(-4)})`;
+      }
 
-      finalizeBooking(methodLabel, txnRef, tariff.finalAmount);
+      finalizeBooking(methodLabel, txnRef, tariff.finalAmount, false);
     }, 2300);
   };
 
-  const finalizeBooking = (methodText: string, txnRef: string, amt: number) => {
+  const finalizeBooking = (methodText: string, txnRef: string, amt: number, isCash: boolean = false) => {
     const effectiveTotalVolume = isSocietyBooking ? tankerCount * 10000 : capacity;
 
     const newBooking = storageService.addBooking({
@@ -444,11 +461,11 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
       societySumpCapacityLiters: isSocietyBooking ? societySumpCapacityLiters : undefined,
       bulkDiscountPercent: isSocietyBooking ? 15 : undefined,
       // Payment Record
-      paymentStatus: 'Paid',
+      paymentStatus: isCash ? 'Pending' : 'Paid',
       paymentMethod: methodText,
       transactionId: txnRef,
-      amountPaid: amt,
-      paidAt: new Date().toISOString(),
+      amountPaid: isCash ? 0 : amt,
+      paidAt: isCash ? undefined : new Date().toISOString(),
     });
 
     setPaymentProcessingStage('idle');
@@ -1419,177 +1436,469 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
                 Choose Payment Method (प्रदान पद्धत निवडा)
               </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {/* Method 1: UPI */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('upi')}
-                  className={`p-3 rounded-2xl border text-left transition ${
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer min-w-0 ${
                     paymentMethod === 'upi'
                       ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <QrCode className="w-4 h-4 text-emerald-600" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">UPI / QR Code</span>
+                  <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                    <QrCode className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate">UPI / QR Code</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 block">GPay, PhonePe, Paytm, BHIM</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight">GPay, PhonePe, Paytm, BHIM</span>
                 </button>
 
                 {/* Method 2: Net Banking */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('netbanking')}
-                  className={`p-3 rounded-2xl border text-left transition ${
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer min-w-0 ${
                     paymentMethod === 'netbanking'
                       ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Building className="w-4 h-4 text-blue-600" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">Net Banking</span>
+                  <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                    <Building className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate">Net Banking</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 block">SBI, HDFC, ICICI, BoB</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight">SBI, HDFC, ICICI, BoB</span>
                 </button>
 
                 {/* Method 3: Cards */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`p-3 rounded-2xl border text-left transition ${
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer min-w-0 ${
                     paymentMethod === 'card'
                       ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <CreditCard className="w-4 h-4 text-purple-600" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">Debit / Credit</span>
+                  <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                    <CreditCard className="w-4 h-4 text-purple-600 shrink-0" />
+                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate">Debit / Credit</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 block">RuPay, Visa, MasterCard</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight">RuPay, Visa, MasterCard</span>
                 </button>
 
                 {/* Method 4: Cash / Doorstep */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('cash')}
-                  className={`p-3 rounded-2xl border text-left transition ${
+                  className={`p-3.5 rounded-2xl border text-left transition cursor-pointer min-w-0 ${
                     paymentMethod === 'cash'
                       ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 ring-2 ring-emerald-500/20'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <KeyRound className="w-4 h-4 text-[#ea580c]" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">Doorstep OTP</span>
+                  <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                    <KeyRound className="w-4 h-4 text-[#ea580c] shrink-0" />
+                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate">Doorstep OTP</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 block">Pay to Driver at Delivery</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight">Pay to Driver at Delivery</span>
                 </button>
               </div>
 
               {/* Payment Details Sub-panel */}
               {paymentMethod === 'upi' && (
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center gap-4 text-xs">
-                  {/* Simulated QR Code */}
-                  <div className="p-2 bg-white rounded-xl border border-slate-300 shadow-sm shrink-0 text-center">
-                    <svg viewBox="0 0 100 100" className="w-24 h-24">
-                      <rect width="100" height="100" fill="#ffffff" />
-                      <rect x="5" y="5" width="30" height="30" fill="#0f172a" />
-                      <rect x="10" y="10" width="20" height="20" fill="#ffffff" />
-                      <rect x="15" y="15" width="10" height="10" fill="#0f172a" />
-                      <rect x="65" y="5" width="30" height="30" fill="#0f172a" />
-                      <rect x="70" y="10" width="20" height="20" fill="#ffffff" />
-                      <rect x="75" y="15" width="10" height="10" fill="#0f172a" />
-                      <rect x="5" y="65" width="30" height="30" fill="#0f172a" />
-                      <rect x="10" y="70" width="20" height="20" fill="#ffffff" />
-                      <rect x="15" y="75" width="10" height="10" fill="#0f172a" />
-                      <rect x="45" y="10" width="8" height="8" fill="#0f172a" />
-                      <rect x="45" y="30" width="15" height="15" fill="#0f172a" />
-                      <rect x="50" y="65" width="12" height="12" fill="#0f172a" />
-                      <rect x="75" y="75" width="12" height="12" fill="#0f172a" />
-                    </svg>
-                    <span className="text-[9px] font-mono font-bold text-slate-500 block mt-1">MBMC UPI QR</span>
+                <div className="p-4 sm:p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 text-xs animate-in fade-in">
+                  {/* UPI Sub-Mode Switcher */}
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setUpiMode('qr')}
+                      className={`flex-1 py-2 px-2 rounded-lg font-bold text-center text-xs transition cursor-pointer min-w-0 ${
+                        upiMode === 'qr'
+                          ? 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="truncate block">Dynamic BharatQR</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUpiMode('apps')}
+                      className={`flex-1 py-2 px-2 rounded-lg font-bold text-center text-xs transition cursor-pointer min-w-0 ${
+                        upiMode === 'apps'
+                          ? 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="truncate block">Instant UPI Apps</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUpiMode('id')}
+                      className={`flex-1 py-2 px-2 rounded-lg font-bold text-center text-xs transition cursor-pointer min-w-0 ${
+                        upiMode === 'id'
+                          ? 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="truncate block">Enter UPI ID</span>
+                    </button>
                   </div>
 
-                  <div className="space-y-2 flex-1">
-                    <div>
-                      <span className="text-slate-400 text-[10px] block uppercase font-bold">MBMC Official VPA</span>
-                      <strong className="text-slate-900 dark:text-white font-mono text-xs">mbmc.water@sbi</strong>
+                  {/* Mode A: BharatQR */}
+                  {upiMode === 'qr' && (
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <div className="p-2.5 bg-white rounded-2xl border-2 border-emerald-500/40 shadow-md shrink-0 text-center relative group">
+                        <svg viewBox="0 0 100 100" className="w-28 h-28">
+                          <rect width="100" height="100" fill="#ffffff" />
+                          <rect x="5" y="5" width="28" height="28" fill="#0f172a" rx="4" />
+                          <rect x="9" y="9" width="20" height="20" fill="#ffffff" rx="2" />
+                          <rect x="13" y="13" width="12" height="12" fill="#059669" rx="2" />
+                          <rect x="67" y="5" width="28" height="28" fill="#0f172a" rx="4" />
+                          <rect x="71" y="9" width="20" height="20" fill="#ffffff" rx="2" />
+                          <rect x="75" y="13" width="12" height="12" fill="#059669" rx="2" />
+                          <rect x="5" y="67" width="28" height="28" fill="#0f172a" rx="4" />
+                          <rect x="9" y="71" width="20" height="20" fill="#ffffff" rx="2" />
+                          <rect x="13" y="75" width="12" height="12" fill="#059669" rx="2" />
+                          <rect x="42" y="10" width="8" height="8" fill="#0f172a" />
+                          <rect x="52" y="18" width="6" height="6" fill="#0f172a" />
+                          <rect x="42" y="38" width="16" height="16" fill="#0f172a" />
+                          <rect x="46" y="42" width="8" height="8" fill="#059669" />
+                          <rect x="68" y="42" width="10" height="10" fill="#0f172a" />
+                          <rect x="82" y="52" width="10" height="10" fill="#0f172a" />
+                          <rect x="42" y="68" width="12" height="12" fill="#0f172a" />
+                          <rect x="68" y="72" width="20" height="20" fill="#0f172a" />
+                          <rect x="74" y="78" width="8" height="8" fill="#ffffff" />
+                        </svg>
+                        <span className="text-[10px] font-mono font-black text-emerald-700 block mt-1">
+                          MBMC • ₹{tariff.finalAmount}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 flex-1">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block uppercase font-bold">Official Municipal VPA</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <strong className="text-slate-900 dark:text-white font-mono text-sm bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                              mbmc.water@sbi
+                            </strong>
+                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">
+                              ✓ NPCI Certified
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-slate-500 text-[11px] leading-relaxed">
+                          Scan using any UPI app (Google Pay, PhonePe, Paytm, BHIM, CRED, Amazon Pay). Amount ₹{tariff.finalAmount} is pre-locked for instant settlement.
+                        </p>
+                        <div className="pt-1 flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-slate-500">Supported:</span>
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-[10px] font-bold text-slate-700 dark:text-slate-300">GPay</span>
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-[10px] font-bold text-slate-700 dark:text-slate-300">PhonePe</span>
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-[10px] font-bold text-slate-700 dark:text-slate-300">Paytm</span>
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-[10px] font-bold text-slate-700 dark:text-slate-300">BHIM</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-slate-500 text-[11px]">
-                      Scan with any UPI app (Google Pay, PhonePe, Paytm, BHIM) to pay ₹{tariff.finalAmount}. Instant confirmation with digital transaction receipt.
-                    </p>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-[10px]">
-                      <span>⚡ Test Mode: Instant 1-Click Simulated Payment Enabled</span>
+                  )}
+
+                  {/* Mode B: Instant UPI Apps */}
+                  {upiMode === 'apps' && (
+                    <div className="space-y-3">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 block text-xs">
+                        Select your preferred UPI App for 1-Tap Payment:
+                      </span>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        {[
+                          { id: 'gpay', label: 'Google Pay', color: 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/40' },
+                          { id: 'phonepe', label: 'PhonePe', color: 'border-purple-500 bg-purple-50/50 dark:bg-purple-950/40' },
+                          { id: 'paytm', label: 'Paytm UPI', color: 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/40' },
+                          { id: 'bhim', label: 'BHIM UPI', color: 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40' },
+                          { id: 'cred', label: 'CRED UPI', color: 'border-slate-800 bg-slate-100 dark:bg-slate-800' },
+                        ].map((app) => (
+                          <button
+                            key={app.id}
+                            type="button"
+                            onClick={() => setUpiApp(app.id as any)}
+                            className={`p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-1.5 ${
+                              upiApp === app.id
+                                ? `${app.color} ring-2 ring-emerald-500 font-bold text-slate-900 dark:text-white`
+                                : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                            }`}
+                          >
+                            <span className="w-7 h-7 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center font-black text-xs text-slate-800 dark:text-white shadow-xs">
+                              {app.label.slice(0, 1)}
+                            </span>
+                            <span className="text-[11px] font-bold">{app.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
+                        <span className="text-emerald-900 dark:text-emerald-200 font-medium">
+                          Clicking Continue will simulate instant approval via <strong>{upiApp.toUpperCase()}</strong>.
+                        </span>
+                        <span className="text-emerald-700 dark:text-emerald-300 font-bold font-mono">
+                          ₹{tariff.finalAmount}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Mode C: Enter UPI ID */}
+                  {upiMode === 'id' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                          Enter Citizen Virtual Payment Address (VPA / UPI ID)
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={upiIdInput}
+                            onChange={(e) => {
+                              setUpiIdInput(e.target.value);
+                              setUpiIdVerified(e.target.value.includes('@'));
+                            }}
+                            placeholder="e.g. mobile@okaxis or name@ybl"
+                            className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-900 dark:text-white pr-24"
+                          />
+                          <span className={`absolute right-2.5 top-2.5 text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                            upiIdVerified
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                              : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                          }`}>
+                            {upiIdVerified ? '✓ Valid VPA' : 'Enter @bank'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        <span className="text-[10px] text-slate-400 font-medium">Quick handles:</span>
+                        {['@okaxis', '@okhdfcbank', '@ybl', '@paytm', '@sbi', '@icici'].map((handle) => (
+                          <button
+                            key={handle}
+                            type="button"
+                            onClick={() => {
+                              const base = (phone || '9820544123').slice(0, 10);
+                              setUpiIdInput(`${base}${handle}`);
+                              setUpiIdVerified(true);
+                            }}
+                            className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-mono text-[10px] transition"
+                          >
+                            +{handle}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
+              {/* Net Banking Sub-panel */}
               {paymentMethod === 'netbanking' && (
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
-                  <span className="font-bold text-slate-700 dark:text-slate-300 block">
-                    Select Your Bank for Civic Gateway:
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Bank of Baroda', 'Axis Bank', 'Canara Bank'].map((b) => (
+                <div className="p-4 sm:p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 text-xs animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      Choose Authorized Civic Gateway Bank:
+                    </span>
+                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded">
+                      Zero Surcharge
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { name: 'State Bank of India', code: 'SBI' },
+                      { name: 'HDFC Bank', code: 'HDFC' },
+                      { name: 'ICICI Bank', code: 'ICICI' },
+                      { name: 'Bank of Baroda', code: 'BOB' },
+                      { name: 'Axis Bank', code: 'AXIS' },
+                      { name: 'Kotak Mahindra', code: 'KOTAK' },
+                      { name: 'Punjab National Bank', code: 'PNB' },
+                      { name: 'Canara Bank', code: 'CANARA' },
+                    ].map((b) => (
                       <button
-                        key={b}
+                        key={b.name}
                         type="button"
-                        onClick={() => setSelectedBank(b)}
-                        className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition ${
-                          selectedBank === b
-                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                        onClick={() => setSelectedBank(b.name)}
+                        className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition flex items-center justify-between ${
+                          selectedBank === b.name
+                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500/20'
+                            : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900'
                         }`}
                       >
-                        {b}
+                        <span className="font-bold truncate">{b.name}</span>
+                        <span className="text-[9px] font-mono opacity-60 ml-1">{b.code}</span>
                       </button>
                     ))}
                   </div>
+
+                  {/* Simulated Bank Login Preview */}
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px]">
+                    <div className="space-y-0.5">
+                      <span className="text-slate-400 uppercase text-[9px] font-bold block">Selected Institution</span>
+                      <strong className="text-slate-900 dark:text-white font-bold">{selectedBank} NetBanking Gateway</strong>
+                      <p className="text-slate-500 text-[10px]">Connected via RBI e-Payment Switch (256-Bit SSL Secured)</p>
+                    </div>
+                    <div className="shrink-0 flex items-center gap-2">
+                      <span className="text-emerald-600 font-mono font-bold text-xs">₹{tariff.finalAmount}</span>
+                      <span className="px-2 py-1 rounded bg-blue-600 text-white font-bold text-[10px]">1-Tap Demo Auth</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
+              {/* Card Sub-panel */}
               {paymentMethod === 'card' && (
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 sm:p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 text-xs animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      Enter Municipal Water Bill Payment Card:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCardNetwork('rupay');
+                          setCardNumber('6082 1920 4410 8821');
+                          setCardExpiry('11/29');
+                          setCardCvv('721');
+                        }}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                          cardNetwork === 'rupay'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        RuPay Card
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCardNetwork('visa');
+                          setCardNumber('4532 9901 2341 4242');
+                          setCardExpiry('08/28');
+                          setCardCvv('891');
+                        }}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                          cardNetwork === 'visa'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        Visa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCardNetwork('mastercard');
+                          setCardNumber('5412 7500 1100 9823');
+                          setCardExpiry('03/27');
+                          setCardCvv('410');
+                        }}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                          cardNetwork === 'mastercard'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        MasterCard
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card Form */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div className="sm:col-span-2">
                       <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                        Test Municipal Card Number
+                        Card Number
                       </label>
                       <input
                         type="text"
-                        readOnly
-                        value="4532 •••• •••• 4242 (RuPay/Visa)"
-                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-800 dark:text-white"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(e.target.value)}
+                        placeholder="16-digit card number"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-900 dark:text-white"
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                        Expiry / CVV
+                        Expiry (MM/YY)
                       </label>
                       <input
                         type="text"
-                        readOnly
-                        value="12/28 • 891"
-                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-800 dark:text-white"
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(e.target.value)}
+                        placeholder="MM/YY"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                        CVV
+                      </label>
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value)}
+                        placeholder="CVV"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-xs font-bold text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="sm:col-span-4">
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                        Cardholder Name
+                      </label>
+                      <input
+                        type="text"
+                        value={cardHolder}
+                        onChange={(e) => setCardHolder(e.target.value)}
+                        placeholder="Name on card"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white"
                       />
                     </div>
                   </div>
-                  <span className="text-[10px] text-emerald-600 font-bold block">
-                    ✓ Pre-filled test card ready for 1-click simulation
-                  </span>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1 text-slate-500">
+                    <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>PCI-DSS Compliant • 3D Secure Verified</span>
+                    </span>
+                    <span>No international fee</span>
+                  </div>
                 </div>
               )}
 
+              {/* Cash / Doorstep OTP Sub-panel */}
               {paymentMethod === 'cash' && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                  <strong className="block font-bold">💵 Cash / UPI on Delivery:</strong>
+                <div className="p-4 sm:p-5 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-3 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-amber-600" />
+                      <strong className="font-bold text-sm">Doorstep Payment &amp; Discharge Verification</strong>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 font-black font-mono text-[11px]">
+                      ₹0 Paid Now
+                    </span>
+                  </div>
+
                   <p className="text-[11px] leading-relaxed">
-                    Pay driver Rahul directly at your doorstep once the water is discharged. Your 4-digit confidential delivery OTP will verify payment and handover.
+                    You do not need to pay in advance online. When municipal driver Rahul arrives at your building in {areaName}, pay ₹{tariff.finalAmount} directly via Cash or Driver&apos;s UPI scanner.
                   </p>
+
+                  <div className="p-3 bg-white/80 dark:bg-slate-900/80 rounded-xl border border-amber-300 dark:border-amber-800 space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">Doorstep Verification Flow:</span>
+                      <span className="text-amber-700 dark:text-amber-300 font-mono font-bold">Step 1 of 4</span>
+                    </div>
+                    <ol className="list-decimal pl-4 space-y-1 text-slate-600 dark:text-slate-300">
+                      <li>Driver arrives and connects discharge pipe to your underground sump or rooftop tank.</li>
+                      <li>Driver collects ₹{tariff.finalAmount} (Cash or UPI).</li>
+                      <li>A 4-digit confidential delivery OTP is SMSed to <strong>+91 {phone}</strong> upon booking.</li>
+                      <li>Share the OTP with driver Rahul to authorize decanting and generate the official MBMC handover receipt.</li>
+                    </ol>
+                  </div>
                 </div>
               )}
             </div>

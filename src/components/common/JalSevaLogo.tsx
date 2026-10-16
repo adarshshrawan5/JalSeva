@@ -43,26 +43,26 @@ export const JalSevaLogo: React.FC<JalSevaLogoProps> = ({
       </div>
 
       {/* Brand Typography */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col justify-center min-w-0">
+        <div className="flex items-baseline gap-2">
           <span
-            className={`font-black tracking-tight text-slate-900 dark:text-white ${titleSizes[size]}`}
+            className={`font-black tracking-normal text-slate-900 dark:text-white leading-snug ${titleSizes[size]}`}
           >
             <span className="text-blue-600 dark:text-blue-400">Jal</span>
             <span className="text-[#fd7e14]">Seva</span>
           </span>
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-hindi border-l border-slate-300 dark:border-slate-700 pl-2">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-hindi border-l border-slate-300 dark:border-slate-700 pl-2 leading-relaxed">
             जलसेवा
           </span>
         </div>
 
         {showSubtitle && (
-          <div className="flex items-center gap-1.5 -mt-0.5">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-1.5 mt-0.5 leading-normal">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">
               MBMC Water Portal
             </span>
-            <span className="w-1 h-1 rounded-full bg-emerald-500" />
-            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">
+            <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />
+            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold font-hindi whitespace-nowrap">
               हर बूंद मायने रखती है
             </span>
           </div>
