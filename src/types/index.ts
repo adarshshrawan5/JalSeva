@@ -139,6 +139,9 @@ export interface Complaint {
   resolutionNotes?: string;
   resolvedAt?: string;
   createdAt: string;
+  isBroadcasted?: boolean;
+  broadcastCategory?: string;
+  broadcastedAt?: string;
   rating?: number;
   feedback?: string;
 }
@@ -160,6 +163,7 @@ export interface Depot {
   address: string;
   lat: number;
   lng: number;
+  coordinates?: [number, number];
   totalTankers: number;
   availableTankers: number;
   managerName: string;

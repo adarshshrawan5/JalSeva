@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Driver, TankerBooking, Depot } from '../../types';
 import { storageService } from '../../services/storageService';
 import { MBMC_DEPOTS } from '../../data/mbmcData';
-import { LeafletMapView } from '../common/LeafletMapView';
+import { GoogleMapView } from '../common/GoogleMapView';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { DeliveryReportModal } from '../common/DeliveryReportModal';
 import { ProfileModal } from '../common/ProfileModal';
@@ -341,7 +341,7 @@ export const DriverDashboard: React.FC<DriverDashboardProps> = ({
               <span className="text-[11px] font-semibold text-slate-500 block">
                 Turn-by-turn Route Map (From {depot.name} to {activeTrip.areaName})
               </span>
-              <LeafletMapView
+              <GoogleMapView
                 center={activeTrip.citizenCoordinates}
                 zoom={14}
                 userLocation={activeTrip.citizenCoordinates}

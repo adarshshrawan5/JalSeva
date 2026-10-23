@@ -18,7 +18,7 @@ import {
   calculateEstimatedDeliveryTime,
   findNearestDepot,
 } from '../../services/distanceService';
-import { LeafletMapView } from '../common/LeafletMapView';
+import { GoogleMapView } from '../common/GoogleMapView';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { JalSevaLogo } from '../common/JalSevaLogo';
 import {
@@ -1019,7 +1019,7 @@ export const TankerBookingForm: React.FC<TankerBookingFormProps> = ({
             </div>
 
             <div className="h-72 w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner">
-              <LeafletMapView
+              <GoogleMapView
                 userLocation={citizenCoords}
                 selectedDepot={assignedDepot}
                 depots={depots}

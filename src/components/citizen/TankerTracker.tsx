@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { TankerBooking, Driver } from '../../types';
 import { storageService } from '../../services/storageService';
-import { LeafletMapView } from '../common/LeafletMapView';
+import { GoogleMapView } from '../common/GoogleMapView';
 import { ReceiptModal } from '../common/ReceiptModal';
 import { DeliveryReportModal } from '../common/DeliveryReportModal';
 import { WhatsAppNotificationModal } from '../common/WhatsAppNotificationModal';
@@ -369,7 +369,7 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
                 <span>🏢 Origin Depot: {activeBooking.assignedDepotName}</span>
               </div>
 
-              <LeafletMapView
+              <GoogleMapView
                 center={activeBooking.citizenCoordinates}
                 zoom={14}
                 userLocation={activeBooking.citizenCoordinates}

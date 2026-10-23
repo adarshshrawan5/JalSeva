@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { WaterZone, SubArea, OutageAlert, Depot } from '../../types';
 import { MBMC_AREAS, MBMC_DEPOTS } from '../../data/mbmcData';
-import { LeafletMapView } from '../common/LeafletMapView';
+import { GoogleMapView } from '../common/GoogleMapView';
 import { calculateHaversineDistance } from '../../services/distanceService';
 import {
   Search,
@@ -748,7 +748,7 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
           </div>
         </div>
 
-        <LeafletMapView
+        <GoogleMapView
           center={selectedZone.center}
           zoom={13}
           userLocation={userLocation || [selectedArea.lat, selectedArea.lng]}

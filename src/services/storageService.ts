@@ -693,51 +693,6 @@ class StorageService {
     this.dispatchEvent();
   }
 
-  citizenRejectAssignedWorker(complaintId: string, reason: string): void {
-    const complaints = this.getComplaints();
-    const nowIso = new Date().toISOString();
-    let rejectedWorkerId: string | undefined;
-
-    const updated = complaints.map((c) => {
-      if (c.id === complaintId) {
-        rejectedWorkerId = c.assignedWorker?.id;
-        return {
-          ...c,
-          status: 'Pending' as ComplaintStatus,
-          assignedWorker: undefined,
-          timeline: [
-            ...c.timeline,
-            {
-              status: 'Pending' as ComplaintStatus,
-              timestamp: nowIso,
-              notes: `Citizen declined assigned technician: "${reason}". Requested re-assignment/reschedule.`,
-              actor: 'Citizen Complainant',
-            },
-          ],
-        };
-      }
-      return c;
-    });
-
-    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
-
-    if (rejectedWorkerId) {
-      const workers = this.getWorkers();
-      const updatedWorkers = workers.map((w) =>
-        w.id === rejectedWorkerId
-          ? {
-              ...w,
-              activeComplaints: Math.max(0, (w.activeComplaints || 1) - 1),
-              currentStatus: 'Available' as const,
-            }
-          : w
-      );
-      localStorage.setItem(STORAGE_KEYS.WORKERS, JSON.stringify(updatedWorkers));
-    }
-
-    this.addAuditLog('Citizen Reassignment', 'Worker Assignment Declined', `Complaint ${complaintId} returned to pending queue. Reason: ${reason}`);
-    this.dispatchEvent();
-  }
 
   // Tanker Bookings
   getBookings(): TankerBooking[] {
