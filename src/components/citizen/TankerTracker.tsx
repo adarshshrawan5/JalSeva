@@ -261,6 +261,19 @@ export const TankerTracker: React.FC<TankerTrackerProps> = ({
                   >
                     🚚 {activeBooking.status}
                   </span>
+                  {activeBooking.cloudSyncStatus === 'synced' ? (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      ☁️ Cloud Synced
+                    </span>
+                  ) : activeBooking.cloudSyncStatus === 'failed' ? (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800" title={activeBooking.cloudSyncError}>
+                      ⚠️ Local Only (Cloud Write Failed)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                      💾 Local Storage
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-slate-500">
                   Delivery for <strong className="text-slate-800 dark:text-slate-200">{activeBooking.citizenName}</strong> on{' '}

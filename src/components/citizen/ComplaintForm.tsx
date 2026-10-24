@@ -52,6 +52,19 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onSuccess, onCance
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [submittedComplaint, setSubmittedComplaint] = useState<Complaint | null>(null);
 
+  // Reactive listener to update submittedComplaint cloudSyncStatus when Firestore confirms or fails
+  React.useEffect(() => {
+    if (!submittedComplaint) return;
+    const handleUpdate = () => {
+      const updated = storageService.getComplaints().find((c) => c.id === submittedComplaint.id);
+      if (updated && (updated.cloudSyncStatus !== submittedComplaint.cloudSyncStatus || updated.cloudSyncError !== submittedComplaint.cloudSyncError)) {
+        setSubmittedComplaint(updated);
+      }
+    };
+    window.addEventListener('aqua_connect_storage_update', handleUpdate);
+    return () => window.removeEventListener('aqua_connect_storage_update', handleUpdate);
+  }, [submittedComplaint]);
+
   // Form State
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -234,6 +247,23 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onSuccess, onCance
           </div>
           <div className="text-xs text-slate-600 dark:text-slate-300">
             Priority: <strong className="text-rose-600">{submittedComplaint.priority}</strong> • Issue: {submittedComplaint.issueType}
+          </div>
+
+          {/* Cloud Persistence Verification Badge */}
+          <div className="pt-2 flex justify-center">
+            {submittedComplaint.cloudSyncStatus === 'failed' ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-3 py-1 rounded-full border border-rose-200 dark:border-rose-800">
+                ⚠️ Saved locally in browser. Cloud sync rejected ({submittedComplaint.cloudSyncError || 'Network / permissions error'})
+              </span>
+            ) : submittedComplaint.cloudSyncStatus === 'synced' ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                ☁️ Verified & Saved to Firebase Cloud Firestore
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+                💾 Saved locally in browser (Syncing to Cloud...)
+              </span>
+            )}
           </div>
         </div>
 

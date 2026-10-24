@@ -212,13 +212,34 @@ class StorageService {
       id: newId,
       createdAt: new Date().toISOString(),
       views: 1,
+      cloudSyncStatus: 'local_only',
     };
     alerts.unshift(newAlert);
     localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(alerts));
     this.addAuditLog(adminName, 'Alert Published', `${alert.type}: ${alert.title}`);
     this.dispatchEvent();
-    firebaseService.syncOutageAlert(newAlert).catch(() => {});
+    firebaseService
+      .syncOutageAlert(newAlert)
+      .then((res) => {
+        if (res && res.success) {
+          this.updateAlertSyncStatus(newId, 'synced');
+        } else {
+          this.updateAlertSyncStatus(newId, 'failed', res?.error || 'Firestore write rejected');
+        }
+      })
+      .catch((err: any) => {
+        this.updateAlertSyncStatus(newId, 'failed', err?.message || 'Firestore write error');
+      });
     return newAlert;
+  }
+
+  updateAlertSyncStatus(alertId: string, status: 'synced' | 'failed' | 'local_only', error?: string): void {
+    const alerts = this.getAlerts();
+    const updated = alerts.map((a) =>
+      a.id === alertId ? { ...a, cloudSyncStatus: status, cloudSyncError: error } : a
+    );
+    localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(updated));
+    this.dispatchEvent();
   }
 
   updateAlertStatus(alertId: string, status: 'Active' | 'Resolved' | 'Expired', adminName: string = 'Admin'): void {
@@ -243,6 +264,15 @@ class StorageService {
     return raw ? JSON.parse(raw) : INITIAL_COMPLAINTS;
   }
 
+  updateComplaintSyncStatus(complaintId: string, status: 'synced' | 'failed' | 'local_only', error?: string): void {
+    const complaints = this.getComplaints();
+    const updated = complaints.map((c) =>
+      c.id === complaintId ? { ...c, cloudSyncStatus: status, cloudSyncError: error } : c
+    );
+    localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify(updated));
+    this.dispatchEvent();
+  }
+
   addComplaint(data: Omit<Complaint, 'id' | 'createdAt' | 'status' | 'timeline'>): Complaint {
     const complaints = this.getComplaints();
     const id = generateComplaintId();
@@ -252,6 +282,7 @@ class StorageService {
       id,
       status: 'Pending',
       createdAt: nowIso,
+      cloudSyncStatus: 'local_only',
       timeline: [
         {
           status: 'Pending',
@@ -267,7 +298,18 @@ class StorageService {
     // Update active complaints count in stats
     this.updateStatsDelta({ activeComplaintsDelta: 1 });
     this.dispatchEvent();
-    firebaseService.syncComplaint(newComplaint).catch(() => {});
+    firebaseService
+      .syncComplaint(newComplaint)
+      .then((res) => {
+        if (res && res.success) {
+          this.updateComplaintSyncStatus(id, 'synced');
+        } else {
+          this.updateComplaintSyncStatus(id, 'failed', res?.error || 'Firestore write rejected');
+        }
+      })
+      .catch((err: any) => {
+        this.updateComplaintSyncStatus(id, 'failed', err?.message || 'Firestore write error');
+      });
     return newComplaint;
   }
 
@@ -700,6 +742,15 @@ class StorageService {
     return raw ? JSON.parse(raw) : INITIAL_BOOKINGS;
   }
 
+  updateBookingSyncStatus(bookingId: string, status: 'synced' | 'failed' | 'local_only', error?: string): void {
+    const bookings = this.getBookings();
+    const updated = bookings.map((b) =>
+      b.id === bookingId ? { ...b, cloudSyncStatus: status, cloudSyncError: error } : b
+    );
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(updated));
+    this.dispatchEvent();
+  }
+
   addBooking(
     bookingData: Omit<TankerBooking, 'id' | 'createdAt' | 'status' | 'deliveryOtp'> & { deliveryOtp?: string }
   ): TankerBooking {
@@ -707,6 +758,18 @@ class StorageService {
       throw new Error('Booking date must be strictly restricted to Today or Tomorrow.');
     }
     const bookings = this.getBookings();
+
+    // Duplicate check: prevent duplicate active booking spam for same phone & booking date
+    const hasDuplicateActive = bookings.some(
+      (b) =>
+        b.phone === bookingData.phone &&
+        b.bookingDate === bookingData.bookingDate &&
+        ['Pending', 'Approved', 'Dispatched', 'In Transit'].includes(b.status)
+    );
+    if (hasDuplicateActive) {
+      throw new Error(`An active tanker booking already exists for phone ${bookingData.phone} on ${bookingData.bookingDate}.`);
+    }
+
     const id = generateBookingId();
     const deliveryOtp =
       bookingData.deliveryOtp ||
@@ -719,6 +782,7 @@ class StorageService {
       createdAt: new Date().toISOString(),
       deliveryOtp,
       otpVerified: false,
+      cloudSyncStatus: 'local_only',
     };
     bookings.unshift(newBooking);
     localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
@@ -726,7 +790,18 @@ class StorageService {
     // Decrement available tanker count at depot
     this.decrementDepotTanker(bookingData.assignedDepotId);
     this.dispatchEvent();
-    firebaseService.syncTankerBooking(newBooking).catch(() => {});
+    firebaseService
+      .syncTankerBooking(newBooking)
+      .then((res) => {
+        if (res && res.success) {
+          this.updateBookingSyncStatus(id, 'synced');
+        } else {
+          this.updateBookingSyncStatus(id, 'failed', res?.error || 'Firestore write rejected');
+        }
+      })
+      .catch((err: any) => {
+        this.updateBookingSyncStatus(id, 'failed', err?.message || 'Firestore write error');
+      });
     return newBooking;
   }
 
@@ -844,6 +919,29 @@ class StorageService {
     return citizens.find((c) => c.phone.replace(/\D/g, '').slice(-10) === clean) || null;
   }
 
+  async findCitizenByPhoneAsync(phone: string): Promise<CitizenUser | null> {
+    const local = this.findCitizenByPhone(phone);
+    if (local) return local;
+
+    // Query Cloud Firestore document directly by ID (allowed get operation)
+    try {
+      const remote = await firebaseService.fetchCitizenByPhone(phone);
+      if (remote) {
+        const citizens = this.getRegisteredCitizens();
+        const clean = phone.replace(/\D/g, '').slice(-10);
+        if (!citizens.some((c) => c.phone.replace(/\D/g, '').slice(-10) === clean)) {
+          citizens.push(remote);
+          localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
+          this.dispatchEvent();
+        }
+        return remote;
+      }
+    } catch {
+      // Non-blocking fallback
+    }
+    return null;
+  }
+
   registerCitizen(citizen: Omit<CitizenUser, 'id'> & { id?: string }): { success: boolean; error?: string; citizen?: CitizenUser } {
     const clean = citizen.phone.replace(/\D/g, '').slice(-10);
     if (clean.length !== 10) {
@@ -867,6 +965,12 @@ class StorageService {
     citizens.push(newCitizen);
     localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
     this.dispatchEvent();
+
+    // Automatically sync registered citizen user details to Cloud Firestore database
+    firebaseService.syncUserProfile(newCitizen, 'citizen').catch((err) => {
+      console.warn('[StorageService] Error syncing registered citizen to Firestore:', err);
+    });
+
     return { success: true, citizen: newCitizen };
   }
 
@@ -878,23 +982,60 @@ class StorageService {
       const clean = profile.phone.replace(/\D/g, '').slice(-10);
       const citizens = this.getRegisteredCitizens();
       const existingIdx = citizens.findIndex((c) => c.phone.replace(/\D/g, '').slice(-10) === clean);
+      const userToSync: CitizenUser = {
+        id: profile.id || `cit-${clean}`,
+        name: profile.name,
+        phone: clean,
+        address: profile.address,
+        areaName: profile.areaName,
+        zoneId: profile.zoneId,
+        joinedDate: profile.joinedDate || new Date().toISOString(),
+      };
+
       if (existingIdx >= 0) {
-        citizens[existingIdx] = { ...citizens[existingIdx], ...profile, phone: clean };
+        citizens[existingIdx] = { ...citizens[existingIdx], ...userToSync };
         localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
       } else {
-        citizens.push({
-          id: profile.id || `cit-${clean}`,
-          name: profile.name,
-          phone: clean,
-          address: profile.address,
-          areaName: profile.areaName,
-          zoneId: profile.zoneId,
-          joinedDate: profile.joinedDate || new Date().toISOString(),
-        });
+        citizens.push(userToSync);
         localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(citizens));
       }
+
+      // Automatically sync citizen user details to Cloud Firestore database
+      firebaseService.syncUserProfile(userToSync, 'citizen').catch((err) => {
+        console.warn('[StorageService] Error syncing citizen profile to Firestore:', err);
+      });
     }
     this.dispatchEvent();
+  }
+
+  // Sync registered citizens from Cloud Firestore to browser local storage
+  async syncRegisteredCitizensFromCloud(): Promise<number> {
+    try {
+      const remoteCitizens = await firebaseService.fetchRegisteredCitizens();
+      if (!remoteCitizens || remoteCitizens.length === 0) return 0;
+
+      const localCitizens = this.getRegisteredCitizens();
+      const localPhones = new Set(localCitizens.map((c) => c.phone.replace(/\D/g, '').slice(-10)));
+
+      let added = 0;
+      remoteCitizens.forEach((rc) => {
+        const clean = rc.phone.replace(/\D/g, '').slice(-10);
+        if (clean && !localPhones.has(clean)) {
+          localCitizens.push(rc);
+          localPhones.add(clean);
+          added++;
+        }
+      });
+
+      if (added > 0) {
+        localStorage.setItem('jalseva_registered_citizens_v1', JSON.stringify(localCitizens));
+        this.dispatchEvent();
+      }
+      return added;
+    } catch (err) {
+      console.warn('[StorageService] Failed to sync registered citizens from Firestore:', err);
+      return 0;
+    }
   }
 
   clearCitizenProfile(): void {
@@ -1102,6 +1243,15 @@ class StorageService {
     }
   }
 
+  updateMeterReadingSyncStatus(readingId: string, status: 'synced' | 'failed' | 'local_only', error?: string): void {
+    const readings = this.getMeterReadings();
+    const updated = readings.map((r) =>
+      r.id === readingId ? { ...r, cloudSyncStatus: status, cloudSyncError: error } : r
+    );
+    localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(updated));
+    this.dispatchEvent();
+  }
+
   addMeterReading(reading: Omit<MeterReadingRecord, 'id' | 'readingDate' | 'status'>): MeterReadingRecord {
     const readings = this.getMeterReadings();
     const newRecord: MeterReadingRecord = {
@@ -1109,12 +1259,77 @@ class StorageService {
       id: `WMR${Date.now().toString().slice(-8)}`,
       readingDate: new Date().toISOString().split('T')[0],
       status: 'Submitted',
+      cloudSyncStatus: 'local_only',
     };
     readings.unshift(newRecord);
     localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify(readings));
     this.dispatchEvent();
-    firebaseService.syncMeterReading(newRecord).catch(() => {});
+    firebaseService
+      .syncMeterReading(newRecord)
+      .then((res) => {
+        if (res && res.success) {
+          this.updateMeterReadingSyncStatus(newRecord.id, 'synced');
+        } else {
+          this.updateMeterReadingSyncStatus(newRecord.id, 'failed', res?.error || 'Firestore write rejected');
+        }
+      })
+      .catch((err: any) => {
+        this.updateMeterReadingSyncStatus(newRecord.id, 'failed', err?.message || 'Firestore write error');
+      });
     return newRecord;
+  }
+
+  // Cloud Hydration upon authenticated session
+  async hydrateUserFromFirestore(userId: string): Promise<{
+    complaintsHydrated: number;
+    bookingsHydrated: number;
+    readingsHydrated: number;
+  }> {
+    const stats = { complaintsHydrated: 0, bookingsHydrated: 0, readingsHydrated: 0 };
+    try {
+      const [remoteComplaints, remoteBookings, remoteReadings] = await Promise.all([
+        firebaseService.fetchUserComplaints(userId),
+        firebaseService.fetchUserBookings(userId),
+        firebaseService.fetchUserMeterReadings(userId),
+      ]);
+
+      if (remoteComplaints && remoteComplaints.length > 0) {
+        const localComplaints = this.getComplaints();
+        const localIds = new Set(localComplaints.map((c) => c.id));
+        const toAdd = remoteComplaints.filter((rc) => !localIds.has(rc.id));
+        if (toAdd.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.COMPLAINTS, JSON.stringify([...toAdd, ...localComplaints]));
+          stats.complaintsHydrated = toAdd.length;
+        }
+      }
+
+      if (remoteBookings && remoteBookings.length > 0) {
+        const localBookings = this.getBookings();
+        const localIds = new Set(localBookings.map((b) => b.id));
+        const toAdd = remoteBookings.filter((rb) => !localIds.has(rb.id));
+        if (toAdd.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([...toAdd, ...localBookings]));
+          stats.bookingsHydrated = toAdd.length;
+        }
+      }
+
+      if (remoteReadings && remoteReadings.length > 0) {
+        const localReadings = this.getMeterReadings();
+        const localIds = new Set(localReadings.map((r) => r.id));
+        const toAdd = remoteReadings.filter((rr) => !localIds.has(rr.id));
+        if (toAdd.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.METER_READINGS, JSON.stringify([...toAdd, ...localReadings]));
+          stats.readingsHydrated = toAdd.length;
+        }
+      }
+
+      if (stats.complaintsHydrated > 0 || stats.bookingsHydrated > 0 || stats.readingsHydrated > 0) {
+        this.dispatchEvent();
+      }
+    } catch (err) {
+      console.error('[StorageService] Error during Firestore hydration:', err);
+    }
+    return stats;
   }
 
   resetAllData() {

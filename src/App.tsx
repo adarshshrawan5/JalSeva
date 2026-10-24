@@ -14,6 +14,7 @@ import {
   CitizenUser,
 } from './types';
 import { storageService } from './services/storageService';
+import { auth, onAuthStateChanged } from './firebase';
 import { Navbar, ActiveTab } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { AlertTicker } from './components/common/AlertTicker';
@@ -137,6 +138,22 @@ export default function App() {
 
     window.addEventListener('aqua_connect_storage_update', handleStorageUpdate);
     return () => window.removeEventListener('aqua_connect_storage_update', handleStorageUpdate);
+  }, []);
+
+  // Firebase Auth & Cloud Firestore Hydration Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          await storageService.hydrateUserFromFirestore(firebaseUser.uid);
+          await storageService.syncRegisteredCitizensFromCloud();
+        } catch (err) {
+          console.warn('[JalSeva] Cloud hydration failed:', err);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Quick Action Handlers

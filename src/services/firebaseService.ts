@@ -24,7 +24,7 @@ import {
 
 export class FirebaseService {
   // Sync Complaint to Firestore
-  async syncComplaint(complaint: Complaint): Promise<void> {
+  async syncComplaint(complaint: Complaint): Promise<{ success: boolean; error?: string }> {
     const path = `complaints/${complaint.id}`;
     try {
       const docRef = doc(db, 'complaints', complaint.id);
@@ -48,13 +48,15 @@ export class FirebaseService {
       if (auth.currentUser) payload.userId = auth.currentUser.uid;
 
       await setDoc(docRef, payload, { merge: true });
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       handleFirestoreError(error, OperationType.WRITE, path);
+      return { success: false, error: error?.message || 'Firestore write failed' };
     }
   }
 
   // Sync Tanker Booking to Firestore
-  async syncTankerBooking(booking: TankerBooking): Promise<void> {
+  async syncTankerBooking(booking: TankerBooking): Promise<{ success: boolean; error?: string }> {
     const path = `tanker_bookings/${booking.id}`;
     try {
       const docRef = doc(db, 'tanker_bookings', booking.id);
@@ -80,13 +82,15 @@ export class FirebaseService {
       if (auth.currentUser) payload.userId = auth.currentUser.uid;
 
       await setDoc(docRef, payload, { merge: true });
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       handleFirestoreError(error, OperationType.WRITE, path);
+      return { success: false, error: error?.message || 'Firestore write failed' };
     }
   }
 
   // Sync Meter Reading to Firestore
-  async syncMeterReading(reading: MeterReadingRecord): Promise<void> {
+  async syncMeterReading(reading: MeterReadingRecord): Promise<{ success: boolean; error?: string }> {
     const path = `meter_readings/${reading.id}`;
     try {
       const docRef = doc(db, 'meter_readings', reading.id);
@@ -110,13 +114,15 @@ export class FirebaseService {
       if (auth.currentUser) payload.userId = auth.currentUser.uid;
 
       await setDoc(docRef, payload, { merge: true });
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       handleFirestoreError(error, OperationType.WRITE, path);
+      return { success: false, error: error?.message || 'Firestore write failed' };
     }
   }
 
   // Sync Outage Alert to Firestore
-  async syncOutageAlert(alert: OutageAlert): Promise<void> {
+  async syncOutageAlert(alert: OutageAlert): Promise<{ success: boolean; error?: string }> {
     const path = `outage_alerts/${alert.id}`;
     try {
       const docRef = doc(db, 'outage_alerts', alert.id);
@@ -136,14 +142,16 @@ export class FirebaseService {
       if (alert.publishedBy) payload.publishedBy = alert.publishedBy;
 
       await setDoc(docRef, payload, { merge: true });
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       handleFirestoreError(error, OperationType.WRITE, path);
+      return { success: false, error: error?.message || 'Firestore write failed' };
     }
   }
 
   // Sync User Profile to Firestore
-  async syncUserProfile(profile: CitizenUser | AdminUser, role: 'citizen' | 'admin' = 'citizen'): Promise<void> {
-    const userId = auth.currentUser?.uid || profile.id;
+  async syncUserProfile(profile: CitizenUser | AdminUser, role: 'citizen' | 'admin' = 'citizen'): Promise<{ success: boolean; error?: string }> {
+    const userId = profile.id || auth.currentUser?.uid || `cit-${('phone' in profile && profile.phone ? profile.phone.replace(/\D/g, '').slice(-10) : Date.now())}`;
     const path = `users/${userId}`;
     try {
       const docRef = doc(db, 'users', userId);
@@ -157,10 +165,70 @@ export class FirebaseService {
       if ('email' in profile && profile.email) payload.email = profile.email;
       if ('address' in profile && profile.address) payload.address = profile.address;
       if ('zoneId' in profile && profile.zoneId) payload.zoneId = profile.zoneId;
+      if ('consumerNumber' in profile && (profile as any).consumerNumber) payload.consumerNumber = (profile as any).consumerNumber;
 
       await setDoc(docRef, payload, { merge: true });
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       handleFirestoreError(error, OperationType.WRITE, path);
+      return { success: false, error: error?.message || 'Failed to sync user profile' };
+    }
+  }
+
+  // Fetch all registered citizens from Firestore (Requires authentication)
+  async fetchRegisteredCitizens(): Promise<CitizenUser[]> {
+    const path = 'users';
+    try {
+      if (!auth.currentUser) {
+        // Unauthenticated guests should not perform collection-wide user queries
+        return [];
+      }
+      const q = query(collection(db, path), where('role', '==', 'citizen'), limit(100));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((docSnap) => {
+        const d = docSnap.data();
+        return {
+          id: d.id || docSnap.id,
+          name: d.name,
+          phone: d.phone || '',
+          email: d.email,
+          address: d.address,
+          zoneId: d.zoneId,
+          areaName: d.areaName || d.address?.split(',')[0] || 'Mira-Bhayandar',
+          joinedDate: d.joinedDate || new Date().toISOString(),
+        } as CitizenUser;
+      });
+    } catch (error) {
+      console.warn('[FirebaseService] Could not list registered citizens:', error);
+      return [];
+    }
+  }
+
+  // Fetch individual citizen by phone number via direct document get
+  async fetchCitizenByPhone(phone: string): Promise<CitizenUser | null> {
+    const clean = phone.replace(/\D/g, '').slice(-10);
+    if (!clean) return null;
+    const docId = `cit-${clean}`;
+    const path = `users/${docId}`;
+    try {
+      const snap = await getDoc(doc(db, 'users', docId));
+      if (snap.exists()) {
+        const d = snap.data();
+        return {
+          id: d.id || docId,
+          name: d.name,
+          phone: d.phone || clean,
+          email: d.email,
+          address: d.address,
+          zoneId: d.zoneId,
+          areaName: d.areaName || d.address?.split(',')[0] || 'Mira-Bhayandar',
+          joinedDate: d.joinedDate || new Date().toISOString(),
+        } as CitizenUser;
+      }
+      return null;
+    } catch (error) {
+      console.warn(`[FirebaseService] Error fetching user profile for ${docId}:`, error);
+      return null;
     }
   }
 
@@ -202,6 +270,95 @@ export class FirebaseService {
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);
       return () => {};
+    }
+  }
+
+  // Authenticated Retrieval: Fetch complaints owned by current user
+  async fetchUserComplaints(userId: string): Promise<Complaint[]> {
+    const path = 'complaints';
+    try {
+      if (!auth.currentUser || auth.currentUser.uid !== userId) {
+        // Enforce ownership check prior to query
+        console.warn(`[FirebaseService] Unauthorized attempt to query complaints for user ${userId}`);
+      }
+      const q = query(
+        collection(db, path),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((docSnap) => ({
+        ...(docSnap.data() as Complaint),
+        cloudSyncStatus: 'synced' as const,
+      }));
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
+    }
+  }
+
+  // Authenticated Retrieval: Fetch tanker bookings owned by current user
+  async fetchUserBookings(userId: string): Promise<TankerBooking[]> {
+    const path = 'tanker_bookings';
+    try {
+      if (!auth.currentUser || auth.currentUser.uid !== userId) {
+        console.warn(`[FirebaseService] Unauthorized attempt to query bookings for user ${userId}`);
+      }
+      const q = query(
+        collection(db, path),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((docSnap) => ({
+        ...(docSnap.data() as TankerBooking),
+        cloudSyncStatus: 'synced' as const,
+      }));
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
+    }
+  }
+
+  // Authenticated Retrieval: Fetch meter readings owned by current user
+  async fetchUserMeterReadings(userId: string): Promise<MeterReadingRecord[]> {
+    const path = 'meter_readings';
+    try {
+      const q = query(
+        collection(db, path),
+        where('userId', '==', userId),
+        limit(50)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((docSnap) => ({
+        ...(docSnap.data() as MeterReadingRecord),
+        cloudSyncStatus: 'synced' as const,
+      }));
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
+    }
+  }
+
+  // Public Retrieval: Fetch active outage alerts
+  async fetchActiveAlerts(): Promise<OutageAlert[]> {
+    const path = 'outage_alerts';
+    try {
+      const q = query(
+        collection(db, path),
+        where('status', '==', 'Active'),
+        limit(25)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((docSnap) => ({
+        ...(docSnap.data() as OutageAlert),
+        cloudSyncStatus: 'synced' as const,
+      }));
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
     }
   }
 }

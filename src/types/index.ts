@@ -57,6 +57,8 @@ export interface OutageAlert {
   views: number;
   createdAt: string;
   publishedBy: string;
+  cloudSyncStatus?: 'synced' | 'failed' | 'local_only';
+  cloudSyncError?: string;
 }
 
 export type ComplaintType =
@@ -144,6 +146,8 @@ export interface Complaint {
   broadcastedAt?: string;
   rating?: number;
   feedback?: string;
+  cloudSyncStatus?: 'synced' | 'failed' | 'local_only';
+  cloudSyncError?: string;
 }
 
 export type TankerBookingStatus =
@@ -230,6 +234,8 @@ export interface TankerBooking {
   transactionId?: string;
   amountPaid?: number;
   paidAt?: string;
+  cloudSyncStatus?: 'synced' | 'failed' | 'local_only';
+  cloudSyncError?: string;
 }
 
 export interface MeterReadingRecord {
@@ -255,6 +261,8 @@ export interface MeterReadingRecord {
     sewerageCess: number;
     meterRent: number;
   };
+  cloudSyncStatus?: 'synced' | 'failed' | 'local_only';
+  cloudSyncError?: string;
 }
 
 export interface FieldWorker {

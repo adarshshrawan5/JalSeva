@@ -225,11 +225,14 @@ export const CitizenLogin: React.FC<CitizenLoginProps> = ({
     // Success: auto-login
     const newCitizen = registerResult.citizen!;
     storageService.saveCitizenProfile(newCitizen);
+    firebaseService.syncUserProfile(newCitizen, 'citizen').catch((err) => {
+      console.warn('Failed to sync new citizen to Firestore:', err);
+    });
     onLoginSuccess(newCitizen.phone, newCitizen.name, newCitizen.address, newCitizen.areaName);
   };
 
   // Handle Login
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setFeedbackMsg(null);
@@ -240,10 +243,13 @@ export const CitizenLogin: React.FC<CitizenLoginProps> = ({
       return;
     }
 
-    const existing = storageService.findCitizenByPhone(cleanPhone);
+    const existing = await storageService.findCitizenByPhoneAsync(cleanPhone);
     if (existing) {
-      // Existing citizen found: load profile
+      // Existing citizen found: load profile & sync to Firestore
       storageService.saveCitizenProfile(existing);
+      firebaseService.syncUserProfile(existing, 'citizen').catch((err) => {
+        console.warn('Failed to sync citizen login to Firestore:', err);
+      });
       onLoginSuccess(
         existing.phone,
         existing.name,
@@ -271,6 +277,9 @@ export const CitizenLogin: React.FC<CitizenLoginProps> = ({
 
       const created = registerResult.citizen!;
       storageService.saveCitizenProfile(created);
+      firebaseService.syncUserProfile(created, 'citizen').catch((err) => {
+        console.warn('Failed to sync citizen onboarding to Firestore:', err);
+      });
       onLoginSuccess(created.phone, created.name, created.address, created.areaName);
     }
   };
@@ -317,6 +326,7 @@ export const CitizenLogin: React.FC<CitizenLoginProps> = ({
       storageService.saveCitizenProfile(profile);
       try {
         await firebaseService.syncUserProfile(profile, 'citizen');
+        await storageService.hydrateUserFromFirestore(user.uid);
       } catch {
         // Non-blocking in case of offline network
       }

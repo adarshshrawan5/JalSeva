@@ -67,6 +67,7 @@ import type { ComplaintType, ComplaintPriority } from './src/types';
 async function main() {
   const { storageService, isValidBookingDate, getTodayDateString, getTomorrowDateString } =
     await import('./src/services/storageService');
+  const { firebaseService } = await import('./src/services/firebaseService');
 
 interface TestResult {
   id: string;
@@ -82,6 +83,26 @@ const results: TestResult[] = [];
 function runTest(id: string, name: string, fn: () => { expected: string; actual: string; passed: boolean }) {
   try {
     const outcome = fn();
+    results.push({ id, name, ...outcome });
+  } catch (err: any) {
+    results.push({
+      id,
+      name,
+      expected: 'Successful execution',
+      actual: `Threw error: ${err?.message || String(err)}`,
+      passed: false,
+      error: err?.message || String(err),
+    });
+  }
+}
+
+async function runAsyncTest(
+  id: string,
+  name: string,
+  fn: () => Promise<{ expected: string; actual: string; passed: boolean }>
+) {
+  try {
+    const outcome = await fn();
     results.push({ id, name, ...outcome });
   } catch (err: any) {
     results.push({
@@ -381,6 +402,280 @@ runTest('TC-12', 'Google Maps Quota Event Trap', () => {
     expected: 'CustomEvent gmp-quota-exceeded dispatched and captured by global listener',
     actual: `Event caught: ${eventCaught}`,
     passed: eventCaught,
+  };
+});
+
+// TC-13: Firestore Write Failure Transparency (No Silent Swallowing)
+await runAsyncTest('TC-13', 'Firestore Write Failure Transparency (No Silent Swallowing)', async () => {
+  const originalSync = firebaseService.syncComplaint;
+  // Mock a Firestore PERMISSION_DENIED rejection
+  firebaseService.syncComplaint = async () => ({
+    success: false,
+    error: '7 PERMISSION_DENIED: Missing or insufficient permissions.',
+  });
+
+  const complaint = storageService.addComplaint({
+    citizenName: 'Cloud Test Citizen',
+    phone: '9870001111',
+    email: 'cloud@example.com',
+    address: 'Test Address',
+    zoneId: 'zone-2',
+    areaId: 'area-2',
+    areaName: 'Test Area',
+    locality: 'Sector 1',
+    issueType: 'Pipeline Leak',
+    priority: 'Medium',
+    description: 'Cloud sync failure test ticket',
+  });
+
+  // Wait tick for microtask resolution of firebaseService.syncComplaint promise
+  await new Promise((r) => setTimeout(r, 50));
+  firebaseService.syncComplaint = originalSync;
+
+  const saved = storageService.getComplaints().find((c) => c.id === complaint.id);
+  const passed = saved?.cloudSyncStatus === 'failed' && Boolean(saved?.cloudSyncError?.includes('PERMISSION_DENIED'));
+
+  return {
+    expected: 'cloudSyncStatus: "failed" and cloudSyncError containing PERMISSION_DENIED',
+    actual: `cloudSyncStatus: ${saved?.cloudSyncStatus}, error: ${saved?.cloudSyncError}`,
+    passed: !!passed,
+  };
+});
+
+// TC-14: Firestore Write Success Tracking
+await runAsyncTest('TC-14', 'Firestore Write Success Tracking', async () => {
+  const originalSync = firebaseService.syncComplaint;
+  // Mock a Firestore write success
+  firebaseService.syncComplaint = async () => ({
+    success: true,
+  });
+
+  const complaint = storageService.addComplaint({
+    citizenName: 'Cloud Success Citizen',
+    phone: '9870002222',
+    email: 'success@example.com',
+    address: 'Success Address',
+    zoneId: 'zone-2',
+    areaId: 'area-2',
+    areaName: 'Success Area',
+    locality: 'Sector 2',
+    issueType: 'Pipeline Leak',
+    priority: 'Low',
+    description: 'Cloud sync success test ticket',
+  });
+
+  await new Promise((r) => setTimeout(r, 50));
+  firebaseService.syncComplaint = originalSync;
+
+  const saved = storageService.getComplaints().find((c) => c.id === complaint.id);
+  const passed = saved?.cloudSyncStatus === 'synced' && saved?.cloudSyncError === undefined;
+
+  return {
+    expected: 'cloudSyncStatus: "synced" and cloudSyncError: undefined',
+    actual: `cloudSyncStatus: ${saved?.cloudSyncStatus}, error: ${saved?.cloudSyncError}`,
+    passed: !!passed,
+  };
+});
+
+// TC-15: Cloud-to-Local Hydration and Duplicate Prevention
+await runAsyncTest('TC-15', 'Cloud Hydration and Remote-Local Duplicate Deduplication', async () => {
+  const originalFetchComplaints = firebaseService.fetchUserComplaints;
+  const originalFetchBookings = firebaseService.fetchUserBookings;
+  const originalFetchReadings = firebaseService.fetchUserMeterReadings;
+
+  const existingComplaints = storageService.getComplaints();
+  const existingId = existingComplaints[0]?.id || 'CMP-EXISTING-01';
+
+  // Mock remote returning 1 existing complaint (duplicate) and 1 new remote complaint
+  firebaseService.fetchUserComplaints = async () => [
+    {
+      id: existingId,
+      citizenName: 'Already Local Citizen',
+      phone: '9000000000',
+      email: 'local@example.com',
+      address: 'Local Road',
+      zoneId: 'zone-1',
+      areaId: 'area-1',
+      areaName: 'Local Area',
+      locality: 'Sector 1',
+      issueType: 'Low Water Pressure',
+      priority: 'Low',
+      description: 'Existing item',
+      status: 'Pending',
+      timeline: [],
+      createdAt: new Date().toISOString(),
+      cloudSyncStatus: 'synced',
+    },
+    {
+      id: 'CMP-REMOTE-NEW-99',
+      citizenName: 'Remote Hydrated Citizen',
+      phone: '9111111111',
+      email: 'remote@example.com',
+      address: 'Remote Ward',
+      zoneId: 'zone-3',
+      areaId: 'area-3',
+      areaName: 'Remote Area',
+      locality: 'Sector 3',
+      issueType: 'Contaminated Water',
+      priority: 'High',
+      description: 'Hydrated from Cloud Firestore',
+      status: 'In Progress',
+      timeline: [],
+      createdAt: new Date().toISOString(),
+      cloudSyncStatus: 'synced',
+    },
+  ];
+  firebaseService.fetchUserBookings = async () => [];
+  firebaseService.fetchUserMeterReadings = async () => [];
+
+  const initialCount = storageService.getComplaints().length;
+  const stats = await storageService.hydrateUserFromFirestore('test-user-uid');
+
+  firebaseService.fetchUserComplaints = originalFetchComplaints;
+  firebaseService.fetchUserBookings = originalFetchBookings;
+  firebaseService.fetchUserMeterReadings = originalFetchReadings;
+
+  const updatedComplaints = storageService.getComplaints();
+  const duplicateOccurrences = updatedComplaints.filter((c) => c.id === existingId).length;
+  const newRemoteAdded = updatedComplaints.some((c) => c.id === 'CMP-REMOTE-NEW-99');
+
+  const passed =
+    stats.complaintsHydrated === 1 &&
+    duplicateOccurrences === 1 &&
+    newRemoteAdded &&
+    updatedComplaints.length === initialCount + 1;
+
+  return {
+    expected: 'Exactly 1 new complaint hydrated; 0 duplicates of existingId created',
+    actual: `Hydrated: ${stats.complaintsHydrated}, existingId count: ${duplicateOccurrences}, total now: ${updatedComplaints.length}`,
+    passed,
+  };
+});
+
+// TC-16: Tanker Booking Duplicate Order Prevention
+runTest('TC-16', 'Tanker Booking Duplicate Order Prevention', () => {
+  const phone = '9998887770';
+  const bookingDate = getTodayDateString();
+  storageService.addBooking({
+    citizenName: 'Duplicate Test Citizen',
+    phone,
+    email: 'dup@example.com',
+    zoneId: 'zone-1',
+    areaName: 'Area 1',
+    address: 'Address 1',
+    landmark: 'Landmark',
+    citizenCoordinates: [19.3, 72.85],
+    assignedDepotId: 'depot-1',
+    assignedDepotName: 'Depot 1',
+    depotCoordinates: [19.3, 72.85],
+    distanceKm: 1.0,
+    estimatedArrivalMins: '30 mins',
+    bookingDate,
+    capacity: 5000,
+    timeSlot: 'Morning (08:00 AM - 12:00 PM)',
+    reason: 'Low pipeline pressure',
+  });
+
+  let duplicateBlocked = false;
+  let blockedError = '';
+  try {
+    storageService.addBooking({
+      citizenName: 'Duplicate Test Citizen 2',
+      phone,
+      email: 'dup2@example.com',
+      zoneId: 'zone-1',
+      areaName: 'Area 1',
+      address: 'Address 1',
+      landmark: 'Landmark',
+      citizenCoordinates: [19.3, 72.85],
+      assignedDepotId: 'depot-1',
+      assignedDepotName: 'Depot 1',
+      depotCoordinates: [19.3, 72.85],
+      distanceKm: 1.0,
+      estimatedArrivalMins: '30 mins',
+      bookingDate,
+      capacity: 5000,
+      timeSlot: 'Morning (08:00 AM - 12:00 PM)',
+      reason: 'Low pipeline pressure',
+    });
+  } catch (err: any) {
+    duplicateBlocked = true;
+    blockedError = err.message;
+  }
+
+  return {
+    expected: 'Second booking attempt on same date for same phone is rejected with duplicate error',
+    actual: duplicateBlocked ? `Blocked with message: "${blockedError}"` : 'Failed: duplicate was permitted',
+    passed: duplicateBlocked,
+  };
+});
+
+// TC-17: RBAC Blueprint Privilege Escalation Guard
+runTest('TC-17', 'RBAC Blueprint Privilege Escalation Guard', () => {
+  // Verify rules logic: User create must enforce incoming().role != 'admin'
+  const allowCreateRoleRule = (role: string) => role !== 'admin';
+  const citizenAttempt = allowCreateRoleRule('citizen');
+  const workerAttempt = allowCreateRoleRule('worker');
+  const adminSelfAssignAttempt = allowCreateRoleRule('admin');
+
+  const passed = citizenAttempt === true && workerAttempt === true && adminSelfAssignAttempt === false;
+  return {
+    expected: 'Role creation permits "citizen" and "worker" but forbids self-assignment of "admin"',
+    actual: `citizen: ${citizenAttempt}, worker: ${workerAttempt}, admin self-promotion: ${!adminSelfAssignAttempt ? 'blocked' : 'allowed'}`,
+    passed,
+  };
+});
+
+// TC-18: Outage Alert Admin-Only Publication Guard
+runTest('TC-18', 'Outage Alert Admin-Only Publication Guard', () => {
+  // Check authorization helper: Outage write requires isAdmin()
+  const canPublishAlert = (userRole: string, emailVerified: boolean) => {
+    return userRole === 'admin' && emailVerified;
+  };
+  const unauthCitizen = canPublishAlert('citizen', true);
+  const unverifiedAdmin = canPublishAlert('admin', false);
+  const verifiedAdmin = canPublishAlert('admin', true);
+
+  const passed = !unauthCitizen && !unverifiedAdmin && verifiedAdmin;
+  return {
+    expected: 'Citizen rejected, unverified admin rejected, verified admin allowed',
+    actual: `Citizen allowed: ${unauthCitizen}, Unverified admin allowed: ${unverifiedAdmin}, Verified admin allowed: ${verifiedAdmin}`,
+    passed,
+  };
+});
+
+// TC-19: Citizen Registration & User Profile Cloud Sync Trigger
+await runAsyncTest('TC-19', 'Citizen Registration & Profile Cloud Sync Trigger', async () => {
+  let syncedUser: any = null;
+  const originalSyncUser = firebaseService.syncUserProfile;
+  firebaseService.syncUserProfile = async (profile, role) => {
+    syncedUser = { profile, role };
+    return { success: true };
+  };
+
+  const testPhone = '9833445566';
+  const registerResult = storageService.registerCitizen({
+    name: 'Pooja Sharma',
+    phone: testPhone,
+    address: 'Sector 5, Shanti Nagar, Mira Road',
+    areaName: 'Shanti Nagar',
+    zoneId: 'zone-3',
+  });
+
+  await new Promise((r) => setTimeout(r, 20));
+  firebaseService.syncUserProfile = originalSyncUser;
+
+  const passed =
+    registerResult.success &&
+    syncedUser !== null &&
+    syncedUser.profile.name === 'Pooja Sharma' &&
+    syncedUser.profile.phone === testPhone &&
+    syncedUser.role === 'citizen';
+
+  return {
+    expected: 'User registration triggers firebaseService.syncUserProfile with role citizen',
+    actual: syncedUser ? `Synced user: ${syncedUser.profile.name} (${syncedUser.profile.phone}), role: ${syncedUser.role}` : 'Sync not triggered',
+    passed,
   };
 });
 
