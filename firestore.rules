@@ -130,18 +130,17 @@ service cloud.firestore {
              (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
     }
 
-    // Collection: Users
+    // Collection: Users - Strict Privacy & RBAC Protection
     match /users/{userId} {
-      allow get: if isValidId(userId);
-      allow list: if isSignedIn() || isAdmin();
-      allow create: if isValidId(userId) && isValidUserProfile(incoming()) && incoming().id == userId &&
-                       incoming().role != 'admin' &&
-                       (!isSignedIn() || request.auth.uid == userId || isAdmin());
-      allow update: if isValidId(userId) && isValidUserProfile(incoming()) && (
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) &&
+                       isValidUserProfile(incoming()) && incoming().id == userId &&
+                       incoming().role != 'admin'; // Forbid self-assigning admin role
+      allow update: if isSignedIn() && isValidId(userId) && isValidUserProfile(incoming()) && (
         isAdmin() ||
-        (isSignedIn() && request.auth.uid == userId && incoming().id == existing().id &&
-         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'consumerNumber', 'zoneId'])) ||
-        (!isSignedIn() && incoming().id == existing().id && incoming().role == existing().role &&
+        (request.auth.uid == userId && incoming().id == existing().id &&
+         incoming().role == existing().role &&
          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'consumerNumber', 'zoneId']))
       );
       allow delete: if isAdmin();
