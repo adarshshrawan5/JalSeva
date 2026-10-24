@@ -1,208 +1,243 @@
 # 💧 JalSeva (जलसेवा)
 
-### Design and Implementation of a Web-Based Water Supply Management and Citizen Grievance Prototype
-**Academic Research Project • Prototype Case Study: Mira-Bhayandar Urban Area**
+### A Web-Based Water Supply Management and Citizen Grievance Portal
+
+**Student Project | Software Engineering Prototype | Mira-Bhayandar, Maharashtra, India**
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Tests](https://img.shields.io/badge/Tests-19%2F19%20Passing-brightgreen)](test_runner.ts)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+**JalSeva** is an independent, student-developed web application prototype designed to explore how modern digital tools can support water-supply transparency, civic grievance management, emergency tanker booking, and administrative service coordination.
+
+> **Academic Disclaimer:** JalSeva is an independent research prototype. It is **not** an official municipal application, has **not** been commissioned, endorsed, or deployed by the Mira-Bhayandar Municipal Corporation (MBMC), and does **not** connect to physical municipal telemetry or government servers. All municipal statistics, ward populations, and sensor values are illustrative demo models for academic evaluation.
 
 ---
 
-> **Academic Prototype & Research Disclaimer**:  
-> **JalSeva** is an independent, student-developed research engineering prototype and proof-of-concept web application. It is **not** an official municipal application, has **not** been commissioned, endorsed, or deployed by the Mira-Bhayandar Municipal Corporation (MBMC), and does **not** connect to physical municipal telemetry or government servers. All municipal statistics, ward populations, and telemetry figures are illustrative demo models for academic evaluation.
+## 🌐 Project Links
+
+- **Live Prototype Demo:** https://jal-seva-seven.vercel.app/
+- **Source Code Repository:** https://github.com/adarshshrawan5/JalSeva
+
+*Notice: The live demo is hosted for peer review and academic evaluation. It utilizes demonstrative baseline data and must not be treated as an operational civic utility.*
 
 ---
 
-## 📌 1. Project Abstract & Overview
+## 📌 Table of Contents
 
-Urban water distribution in rapidly growing Indian satellite cities often suffers from operational opacity, uncoordinated emergency tanker dispatching, and fragmented citizen grievance redressal. **JalSeva** is a software engineering research project designed to explore a consolidated, progressive web-based architecture for municipal water monitoring and civic redressal.
-
-The prototype models a unified portal connecting four core stakeholder workflows:
-1. **Citizens**: Access scheduled valve distribution timetables, register geotagged grievance tickets with photo evidence, request emergency potable water tankers, monitor consumption trends via telescopic tariff analytics, and log self-meter readings.
-2. **Tanker Drivers**: Access dispatch itineraries, navigate delivery locations on interactive maps, verify 4-digit handover One-Time Passwords (OTP), and log fulfillment states.
-3. **Field Plumbers & Technicians**: Review assigned municipal grievances, execute on-site work diagnostics (parts, labor, water quality readings), and complete ticket resolutions.
-4. **Municipal Administrators**: Coordinate emergency outage alerts, balance field technician assignments, manage ward timetables, and monitor demonstrative zone-level telemetry.
+- [Overview](#-overview)
+- [Research & Engineering Objectives](#-research--engineering-objectives)
+- [Key Features & Role Portals](#-key-features--role-portals)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Implementation Status: Implemented vs. Simulated](#-implementation-status-implemented-vs-simulated)
+- [Data and Security Governance](#-data-and-security-governance)
+- [Illustrative Tariff & Municipal Reference Models](#-illustrative-tariff--municipal-reference-models)
+- [Getting Started & Local Setup](#-getting-started--local-setup)
+- [Testing & Quality Assurance](#-testing--quality-assurance)
+- [Limitations & Constraints](#-limitations--constraints)
+- [Future Enhancements](#-future-enhancements)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Author & Acknowledgments](#-author--acknowledgments)
 
 ---
 
-## 🎯 2. Research Objectives
+## 📖 Overview
 
-1. **Dual-Layer Persistence Architecture**: Evaluate the viability of a hybrid storage layer combining synchronous browser `localStorage` caching with asynchronous Google Cloud Firestore synchronization.
-2. **Deterministic Redressal State Machine**: Model a civic grievance lifecycle (`Pending` → `Assigned` → `In Progress` → `Resolved` → `Reopened`) with bi-directional technician assignment and citizen validation.
-3. **Emergency Resource Allocation**: Implement geospatial depot routing using the Haversine formula to assign the nearest operational depot with available tanker stock.
-4. **Role-Based Access Control (RBAC) in Serverless NoSQL**: Design and validate declarative Firestore security rules (`firestore.rules`) enforcing least-privilege access, citizen privacy isolation, and defense against unauthorized privilege escalation.
+Access to reliable municipal water-supply information and structured grievance redressal mechanisms is essential for rapidly growing urban satellite areas. In many municipalities, coordinating valve release timetables, citizen leakage tickets, emergency potable tanker requests, and field technician dispatching across fragmented manual channels introduces operational friction and delays.
+
+**JalSeva** investigates a consolidated, progressive web-based architecture to address these challenges. The prototype links citizen-facing modules with role-based interfaces for drivers, field technicians, and municipal administrators, combining instant client-side browser caching (`localStorage`) with cloud persistence in **Google Cloud Firestore**.
+
+The project is developed for software engineering education, human-computer interaction (HCI) evaluation, and academic research. Its efficacy in municipal administration has not been established through an authorized civic deployment.
 
 ---
 
-## 🛠️ 3. Technology Stack & System Architecture
+## 🎯 Research & Engineering Objectives
 
+1. **Dual-Layer Persistence Architecture**: Evaluate a hybrid storage layer linking synchronous browser `localStorage` caching with asynchronous Google Cloud Firestore synchronization.
+2. **Deterministic Redressal State Machine**: Model a full civic grievance lifecycle (`Pending` → `Assigned` → `In Progress` → `Resolved` → `Reopened`) with field worker assignment and citizen satisfaction feedback.
+3. **Emergency Resource Allocation**: Demonstrate an emergency potable tanker booking mechanism with geospatial depot allocation via the Haversine formula and duplicate order prevention.
+4. **Delivery Verification Workflow**: Implement a cryptographic 4-digit numeric One-Time Password (OTP) verification system between citizen recipients and delivery drivers.
+5. **Role-Based Access Control (RBAC) in NoSQL**: Design declarative Firestore security rules (`firestore.rules`) enforcing least-privilege document access, citizen profile privacy, and defense against privilege escalation.
+6. **Transparent Failure Feedback**: Ensure failed remote writes explicitly communicate error states (`cloudSyncStatus: 'failed'`) rather than falsely reporting cloud synchronization.
+7. **Comprehensive Automated Verification**: Validate core domain logic, boundary constraints, deduplication, and security rules through automated test suites.
+
+---
+
+## ✨ Key Features & Role Portals
+
+### 👤 Citizen Portal
+- **Supply Timetables**: View modeled ward-level valve release schedules and maintenance notices.
+- **Grievance Docket**: Register geotagged complaints with categorization, urgency levels, and optional photo attachment encoding.
+- **Ticket Tracking**: Inspect real-time status timelines with assigned technician details.
+- **Emergency Potable Tanker Booking**: Request emergency water deliveries restricted to valid time windows (Today and Tomorrow) with nearest-depot routing.
+- **Consumption Analytics**: Log self-meter readings and review monthly consumption trends using interactive area and bar charts.
+- **Telescopic Billing Calculator**: Calculate modeled slab-based residential tariffs with sewerage surcharges and meter service fees.
+
+### 🚚 Tanker Driver Portal
+- **Dispatch Itinerary**: Review allocated emergency delivery orders filtered by assigned tanker registration.
+- **Route Visualization**: Inspect mapped delivery addresses on interactive OpenStreetMap/Leaflet canvases.
+- **OTP Delivery Handover**: Authenticate drop-off by validating the citizen's 4-digit delivery PIN before transitioning orders to `Delivered`.
+
+### 🛠️ Field Worker / Technician Portal
+- **Assigned Work Queue**: Review assigned municipal water pipeline complaints and emergency repair requests.
+- **On-Site Diagnostics**: Log resolution field reports, including labor hours, replacement components, and tested water pressure.
+- **First-Come Job Claiming**: Claim unassigned broadcast complaints with automated workload accounting.
+
+### 🏢 Administrative Portal
+- **Service Schedule Management**: Update ward supply schedules (morning and evening distribution hours).
+- **Outage Alert Broadcast**: Author and publish public emergency water outage advisories.
+- **Workload Balancing**: Reassign grievance tickets and coordinate field worker assignments.
+- **Zonal Telemetry Dashboard**: Monitor demonstrative reservoir levels, distribution pressure, and grievance metrics.
+
+---
+
+## 🧰 Technology Stack
+
+| Component | Technology | Version | Purpose |
+|---|---|---|---|
+| **User Interface** | React | 19.x | Component-driven frontend architecture |
+| **Language** | TypeScript | 5.x | Static type safety and data integrity |
+| **Build Tool** | Vite | 6.x | Fast HMR and optimized production bundling |
+| **Styling** | Tailwind CSS | v4 | Utility-first responsive design system |
+| **Visualizations** | Recharts | 3.x | Telescopic tariff and consumption charts |
+| **Mapping & GIS** | Leaflet & OSM | 1.9.x | Interactive open-source spatial maps |
+| **Google Maps** | `@vis.gl/react-google-maps` | 1.x | Demonstration mapping with quota error traps |
+| **Cloud Database** | Cloud Firestore | SDK v13 | Structured NoSQL document database |
+| **Authentication** | Firebase Auth | SDK v13 | User session management and Google Sign-In |
+| **Client Cache** | Browser `localStorage` | Web API | Zero-latency local caching and offline resilience |
+
+---
+
+## 🏗️ System Architecture
+
+The application adopts a decoupled client-cloud architecture where the local storage service serves as an immediate reactive cache, asynchronously backed by Cloud Firestore:
+
+```text
+                 ┌──────────────────────────────────────────────┐
+                 │             JalSeva Web Client               │
+                 │   (React 19, TypeScript, Tailwind CSS v4)    │
+                 └──────────────────────┬───────────────────────┘
+                                        │
+                 ┌──────────────────────▼───────────────────────┐
+                 │             storageService.ts                │
+                 │   - Synchronous LocalStorage Cache           │
+                 │   - Reactive CustomEvent Bus                 │
+                 │   - Cloud Sync Status Tracking               │
+                 └──────────────────────┬───────────────────────┘
+                                        │
+                             Asynchronous Dual-Sync
+                                        │
+                 ┌──────────────────────▼───────────────────────┐
+                 │             firebaseService.ts               │
+                 │   - Cloud Firestore SDK v13                  │
+                 │   - Client-to-Cloud Hydration & Deduplication│
+                 └──────────────┬───────────────────────────────┘
+                                │
+       ┌────────────────────────┴────────────────────────┐
+       ▼                                                 ▼
+┌────────────────────────────┐              ┌────────────────────────────┐
+│   Firebase Authentication  │              │   Google Cloud Firestore   │
+│   - Google OAuth Provider  │              │   - Named Database ID      │
+│   - Client Session State   │              │   - firestore.rules (ABAC) │
+└────────────────────────────┘              └────────────────────────────┘
 ```
-                      ┌──────────────────────────────────────────────┐
-                      │            JalSeva Web Client                │
-                      │  (React 19, TypeScript, Vite, Tailwind v4)  │
-                      └──────────────────────┬───────────────────────┘
-                                             │
-                      ┌──────────────────────┴───────────────────────┐
-                      │          storageService (Client Cache)       │
-                      │    - LocalStorage persistence                │
-                      │    - Reactive event bus update mechanism     │
-                      └──────────────────────┬───────────────────────┘
-                                             │
-                                  Asynchronous Dual-Sync
-                                             │
-                      ┌──────────────────────▼───────────────────────┐
-                      │          firebaseService (SDK v13)           │
-                      └──────────────┬───────────────────────────────┘
-                                     │
-           ┌─────────────────────────┴─────────────────────────┐
-           ▼                                                   ▼
-┌────────────────────────┐                          ┌────────────────────────┐
-│  Firebase Auth SDK     │                          │  Cloud Firestore NoSQL │
-│  - Google OAuth        │                          │  - Database: Named ID  │
-│  - Session tokens      │                          │  - firestore.rules     │
-└────────────────────────┘                          └────────────────────────┘
-```
 
-- **Frontend Core**: React 19, TypeScript, Vite 8
-- **Styling**: Tailwind CSS v4, Lucide React
-- **Data Visualizations**: Recharts 3.x (`AreaChart`, `BarChart`, `ResponsiveContainer`, `Tooltip`)
-- **GIS & Mapping**: Leaflet 1.9, OpenStreetMap tiles, `@vis.gl/react-google-maps` (with quota fallback traps)
-- **Cloud Database**: Google Cloud Firestore (Named Database: `ai-studio-aquaconnectmbmcd-ed48ea96-a122-4654-9e0e-577010d583d8`)
-- **Authentication**: Firebase Authentication (Google OAuth provider) with client-side session management
-- **Security Validation**: Attribute-Based Access Control (ABAC) in `firestore.rules`
+*Note: In the event of network disruption or security rule rejection, write operations persist in local cache while explicitly marking `cloudSyncStatus: 'failed'` to prevent false reporting.*
 
 ---
 
-## 📊 4. Verified Modules vs. Simulated Demonstrations
+## ⚙️ Implementation Status: Implemented vs. Simulated
 
-To ensure technical transparency and academic rigor, the table below distinguishes implemented software logic from simulated components:
+To preserve technical honesty in academic reporting, the table below delineates verified software logic from simulated components:
 
-| Feature / Module | Implementation Nature | Technical Description |
+| Feature / Module | Status | Technical Description |
 |---|---|---|
-| **Citizen Grievance Docket** | **Implemented** | Form validation, deterministic ID generation (`CMP<date><rand>`), timeline state transitions, photo attachment encoding, and Firestore persistence. |
-| **Emergency Tanker Booking** | **Implemented** | Date validation restricted to Today/Tomorrow, depot allocation via Haversine formula, duplicate order prevention, and Firestore persistence. |
-| **OTP Handover Verification** | **Implemented** | Cryptographic 4-digit numeric OTP generated at booking; delivery completion requires matching OTP validation. |
-| **Cloud-to-Local Hydration** | **Implemented** | When users authenticate, remote cloud documents are merged into client storage without duplicate key creation. |
-| **Write Failure Transparency** | **Implemented** | Cloud sync promises track `'synced'` vs `'failed'` states; interface alerts user if a write was stored locally but rejected by cloud rules. |
-| **Telescopic Billing Calculator**| **Implemented (Formula)** | Computes slab tariffs (0–15 kL @ ₹6.50, 16–30 kL @ ₹10.00, >30 kL @ ₹16.00) + 20% cess + ₹40 meter rent. |
-| **Driver Transit Movement** | **Simulated** | Fleet vehicle GPS positions along routes are simulated via interpolated polyline coordinates; no physical vehicle GPS hardware is connected. |
-| **Citizen SMS / Push Alerts** | **Simulated** | Rendered via on-screen UI modal alerts; no external telecom carrier gateway (e.g. CDAC Mobile Seva / Twilio) is integrated. |
-| **SCADA & Reservoir Telemetry** | **Simulated** | In-memory `setInterval` mathematical models oscillating tank percentages and pressure; no physical RTU/Modbus hardware connection. |
-| **UPI / Payment Gateway** | **Simulated** | Illustrative UPI QR modal and mock receipt generator for demo workflows; no banking aggregator (e.g. Razorpay / NPCI) API key is integrated. |
+| **Citizen Grievance Docket** | **Implemented** | Form validation, deterministic ID generation (`CMP<timestamp><random>`), status progression, photo encoding, and Firestore persistence. |
+| **Emergency Tanker Booking** | **Implemented** | Booking window validation (Today/Tomorrow), depot selection via Haversine calculation, duplicate order rejection, and Firestore persistence. |
+| **Delivery OTP Handover** | **Implemented** | Cryptographic 4-digit numeric OTP generated at booking; delivery completion strictly requires OTP match. |
+| **Dual-Layer Persistence** | **Implemented** | Synchronous `localStorage` updates paired with asynchronous Firestore `setDoc`/`addDoc` calls. |
+| **Failure Transparency** | **Implemented** | Tracks `'synced'` vs `'failed'` states; alerts user if a write was retained locally but rejected by cloud rules. |
+| **Cloud-to-Local Hydration** | **Implemented** | Authenticated session start queries Firestore and merges cloud records without creating duplicates. |
+| **Telescopic Tariff Formula** | **Implemented (Formula)** | Implements slab brackets (0–15 kL @ ₹6.50, 16–30 kL @ ₹10.00, >30 kL @ ₹16.00) + 20% cess + ₹40 meter rent. |
+| **Vehicle Fleet Movement** | **Simulated** | Driver transit coordinates along delivery routes use interpolated polylines; no physical GPS hardware is connected. |
+| **Citizen SMS / Push Notices** | **Simulated** | Rendered via on-screen UI modal alerts; no telecom DLT carrier gateway (e.g. CDAC Mobile Seva / Twilio) is integrated. |
+| **Reservoir / Pressure SCADA** | **Simulated** | Client-side mathematical oscillation loops (`setInterval`); no physical RTU/Modbus hardware connection exists. |
+| **UPI Payment / Receipts** | **Simulated** | Demonstrative UPI QR modal and mock receipt generator; no banking aggregator (e.g. Razorpay / NPCI) API key is integrated. |
 
 ---
 
-## 📈 5. Illustrative Municipal & Tariff Models
+## 🔐 Data and Security Governance
 
-The data structures utilized in the prototype reflect standard urban Indian municipal water supply models, but are **illustrative reference values**:
+JalSeva establishes security controls at both the application interface and the database layer:
 
-### A. Domestic Telescopic Water Tariff Schedule (Model Baseline)
-*Source Baseline: Illustrative rates structured after standard Maharashtra Municipal Corporation residential brackets:*
-- **Slab 1 (0 – 15 kL/month)**: ₹6.50 per kL (Subsidized lifeline quota)
-- **Slab 2 (16 – 30 kL/month)**: ₹10.00 per kL (Standard residential consumption)
+- **Server-Enforced Access Control**: Security is enforced at the database boundary via declarative `firestore.rules`, rather than relying solely on client-side UI guards.
+- **Default-Deny Policy**: All unspecified document reads and writes are blocked by default (`allow read, write: if false;`).
+- **Citizen Profile Isolation (`/users/{userId}`)**:
+  - Individual profile reads are restricted to the authenticated document owner (`request.auth.uid == userId`) or administrators.
+  - Public listing of user profile records is denied to protect citizen privacy.
+  - Profile creation blocks unauthorized self-promotion to `role: 'admin'`.
+- **Public Grievance and Tanker Booking Submission**:
+  - Unauthenticated citizens can submit emergency grievances and tanker requests subject to strict schema validation rules.
+  - Record deletion is restricted exclusively to verified administrators.
+- **Emergency Outage Advisories (`/outage_alerts/{alertId}`)**:
+  - Public read access ensures immediate reach for civic announcements.
+  - Document creation, modification, and deletion are restricted to administrators.
+- **Credential Protection**:
+  - Public web configuration keys in `firebase-applet-config.json` identify the project to Google Cloud APIs.
+  - No private service-account keys (`serviceAccountKey.json`), Admin SDK private credentials, or secrets are exposed.
+
+---
+
+## 📈 Illustrative Tariff & Municipal Reference Models
+
+All tariff schedules and geographic data modeled in the system are illustrative baselines structured after urban Indian municipal standards:
+
+### A. Domestic Telescopic Water Tariff Schedule
+*Model baseline structured after residential municipal water brackets:*
+- **Slab 1 (0 – 15 kL/month)**: ₹6.50 per kL (Subsidized lifeline allocation)
+- **Slab 2 (16 – 30 kL/month)**: ₹10.00 per kL (Standard residential bracket)
 - **Slab 3 (> 30 kL/month)**: ₹16.00 per kL (High-volume consumption bracket)
-- **Sewerage Surcharge**: 20% of net water charge
-- **Meter Service Charge**: ₹40.00 flat monthly charge
+- **Sewerage Surcharge**: 20% of net water consumption charge
+- **Meter Service Rent**: Flat ₹40.00 monthly charge
 - *Benchmark Comparison*: Central Public Health and Environmental Engineering Organisation (CPHEEO) urban benchmark of 135 Liters Per Capita per Day (LPCD).
 
-### B. Illustrative Municipal Zonal Matrix
-*The prototype partitions the demonstrative municipal area into four operational zones:*
+### B. Demonstrative Municipal Zonal Matrix
+*Four illustrative operational divisions modeled for routing and scheduling:*
 
-| Zone ID | Zone Name | Marathi Reference | Ward Tags | Modeled Population (Demo) | Modeled Depots |
+| Zone ID | Zone Name | Marathi Reference | Ward Tags | Modeled Population | Modeled Depots |
 |---|---|---|---|---|---|
-| `zone-1` | Bhayandar East | विभाग १: भाईंदर पूर्व | Wards 1, 2, 3, 4 | ~238,500 | Kharigaon Central Depot |
-| `zone-2` | Bhayandar West | विभाग २: भाईंदर पश्चिम | Wards 5, 6, 7, 8 | ~186,200 | Subhash Nagar Depot |
-| `zone-3` | Mira Road East | विभाग ३: मीरा रोड पूर्व | Wards 9, 10, 11, 12, 13 | ~298,400 | Sector 4 Auxiliary Depot |
-| `zone-4` | Uttan Coastal | विभाग ४: उत्तन व सागरी विभाग | Wards 14, 15, 16 | ~86,278 | Uttan Coastal Depot |
+| `zone-1` | Bhayandar East | विभाग १: भाईंदर पूर्व | Wards 1–4 | ~238,500 | Kharigaon Central Depot |
+| `zone-2` | Bhayandar West | विभाग २: भाईंदर पश्चिम | Wards 5–8 | ~186,200 | Subhash Nagar Depot |
+| `zone-3` | Mira Road East | विभाग ३: मीरा रोड पूर्व | Wards 9–13 | ~298,400 | Sector 4 Auxiliary Depot |
+| `zone-4` | Uttan Coastal | विभाग ४: उत्तन व सागरी विभाग | Wards 14–16 | ~86,278 | Uttan Coastal Depot |
 
 ---
 
-## 🔒 6. Security Architecture & Firestore Rules
-
-Database operations are governed by declarative security rules in `firestore.rules`:
-
-1. **Default-Deny Catch-All**: The database root match blocks all unauthenticated read and write actions by default (`allow read, write: if false;`).
-2. **Citizen Profile Protection (`/users/{userId}`)**:
-   - `get`: Restricted to the authenticated document owner (`request.auth.uid == userId`) or an administrator. Unauthorized public listing of citizen records is denied.
-   - `create`: Enforces valid schema types and blocks non-admins from self-assigning `role: 'admin'`.
-   - `update`: Restricts mutable fields to citizen contact attributes (`name`, `phone`, `address`, `consumerNumber`, `zoneId`). Privilege escalation to `'admin'` is blocked.
-3. **Public Grievance and Tanker Booking Submission**:
-   - `complaints` and `tanker_bookings` allow public creation subject to strict schema validation (`isValidComplaint()`, `isValidTankerBooking()`), enabling anonymous civic reporting.
-   - Deletion of complaints or bookings is restricted to verified administrators (`allow delete: if isAdmin();`).
-4. **Outage Announcements (`/outage_alerts/{alertId}`)**:
-   - Read is public to ensure all residents receive emergency notices.
-   - Write, update, and delete require verified administrator authorization.
-
----
-
-## 🧪 7. Automated Testing & Verification Methodology
-
-The codebase includes an automated test runner (`test_runner.ts`) executed headless via `tsx`:
-
-```bash
-npm test
-```
-
-### Verified Test Cases (19/19 Passing):
-- **TC-01**: Citizen complaint creation and deterministic ID formatting (`CMP...`).
-- **TC-02**: Citizen complaint retrieval by ID.
-- **TC-03**: Tanker booking creation and 4-digit numeric OTP generation.
-- **TC-04**: Tanker booking strict date validation (restricted to Today and Tomorrow).
-- **TC-05**: Client-side storage persistence across browser reload events.
-- **TC-06**: Administrator outage alert publishing and status lifecycle (`Active` → `Resolved`).
-- **TC-07**: Zone supply schedule modifications.
-- **TC-08**: Complaint broadcasting to the field technician pool.
-- **TC-09**: First-come-first-served technician job claim logic and load balancing.
-- **TC-10**: Citizen technician rejection and re-dispatch workflow.
-- **TC-11**: Driver delivery OTP verification (positive vs. negative match).
-- **TC-12**: Google Maps quota exhaustion event handler trap.
-- **TC-13**: Firestore write failure transparency (rejections recorded as `failed` with error string).
-- **TC-14**: Firestore write success tracking (`cloudSyncStatus: 'synced'`).
-- **TC-15**: Remote cloud-to-local hydration with duplicate prevention.
-- **TC-16**: Tanker booking duplicate order prevention (same phone and date).
-- **TC-17**: RBAC blueprint privilege escalation guard (blocking citizen self-promotion).
-- **TC-18**: Outage alert administrator authorization guard.
-- **TC-19**: Citizen registration and profile cloud sync trigger.
-
----
-
-## ⚠️ 8. Research Limitations & Constraints
-
-1. **Non-Production Deployment**: The portal is an experimental prototype and has not undergone penetration testing, load testing under high municipal concurrency, or government audit.
-2. **Authentication Coupling**: In the current security rules blueprint, administrator verification references a specific project administrator email alongside `/admins/` document lookups. A production deployment requires migration to enterprise Firebase Auth Custom Claims.
-3. **Simulated Hardware Integrations**: SCADA levels, pressure sensors, and vehicle fleet locations operate on client-side simulation loops rather than IoT edge gateways or MQTT/Modbus protocols.
-4. **Bi-directional Conflict Resolution**: Multi-device offline reconciliation currently utilizes an add-new-ID strategy rather than a distributed conflict-free replicated data type (CRDT) or vector clock.
-
----
-
-## 💻 9. Reproducibility & Local Setup Guide
+## 🚀 Getting Started & Local Setup
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 - **Git**
 
-### Installation
+### 1. Clone the Repository
 ```bash
-# 1. Clone repository
 git clone https://github.com/adarshshrawan5/JalSeva.git
 cd JalSeva
-
-# 2. Install dependencies
-npm install
-
-# 3. Verify TypeScript type safety
-npm run lint
-
-# 4. Execute automated test suite
-npm test
-
-# 5. Build production bundle
-npm run build
-
-# 6. Start local development server
-npm run dev
 ```
 
-### Firebase Web Client Configuration
-The web client connects using public Firebase API configuration keys (`firebase-applet-config.json`):
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Verify Firebase Web Client Configuration
+Ensure `firebase-applet-config.json` contains public client keys for your Firebase project:
 ```json
 {
   "projectId": "booming-lane-3mn89",
@@ -216,20 +251,108 @@ The web client connects using public Firebase API configuration keys (`firebase-
 ```
 > **Security Notice**: Firebase client configuration keys identify the project to Google Cloud APIs and are safe to be bundled in frontend code. **Never** place private service-account keys (`serviceAccountKey.json`), Admin SDK private keys, or backend secrets in frontend configuration files.
 
+### 4. Start the Local Development Server
+```bash
+npm run dev
+```
+
+### 5. Execute Quality Checks
+```bash
+# Verify TypeScript type definitions and syntax
+npm run lint
+
+# Run automated functional and regression test suite
+npm test
+
+# Build production bundle
+npm run build
+```
+
 ---
 
-## 🔮 10. Future Scope & Roadmap
+## 🧪 Testing & Quality Assurance
 
-- **Hardware SCADA Integration**: Replace simulated telemetry with real-time MQTT message brokers linked to LoRaWAN water-pressure and ultrasonic reservoir sensors.
+The project includes an automated test runner (`test_runner.ts`) executed headless via `tsx`:
+
+```bash
+npm test
+```
+
+### Automated Test Coverage (19/19 Passing)
+
+| Test Case | Module | Verification Objective | Status |
+|---|---|---|---|
+| **TC-01** | Grievance | Citizen complaint creation & deterministic ID formatting (`CMP...`) | **PASS** |
+| **TC-02** | Grievance | Complaint retrieval by ID from storage layer | **PASS** |
+| **TC-03** | Tanker Booking | Emergency tanker booking creation & 4-digit numeric OTP generation | **PASS** |
+| **TC-04** | Tanker Booking | Strict delivery date validation (restricted to Today and Tomorrow) | **PASS** |
+| **TC-05** | Storage Cache | Local storage data retention across browser refresh simulations | **PASS** |
+| **TC-06** | Outage Alerts | Administrator alert creation & status transition (`Active` → `Resolved`) | **PASS** |
+| **TC-07** | Admin Operations | Zone water supply distribution schedule modification | **PASS** |
+| **TC-08** | Dispatch | Admin complaint broadcast to field technician pool | **PASS** |
+| **TC-09** | Field Worker | First-come technician job claim and load accounting | **PASS** |
+| **TC-10** | Citizen Redressal | Citizen rejection of assigned technician & re-dispatch workflow | **PASS** |
+| **TC-11** | Delivery OTP | Driver delivery OTP matching (accepts matching OTP, rejects incorrect) | **PASS** |
+| **TC-12** | GIS Integration | Google Maps API quota event trap handling | **PASS** |
+| **TC-13** | Cloud Sync | Firestore write failure transparency (flags `failed` on `PERMISSION_DENIED`) | **PASS** |
+| **TC-14** | Cloud Sync | Firestore write success tracking (`cloudSyncStatus: 'synced'`) | **PASS** |
+| **TC-15** | Hydration | Cloud-to-local data hydration with duplicate prevention | **PASS** |
+| **TC-16** | Tanker Booking | Duplicate order prevention (same phone and date) | **PASS** |
+| **TC-17** | RBAC Security | Privilege escalation guard (blocks citizen self-assignment of `admin`) | **PASS** |
+| **TC-18** | Security Rules | Outage alert admin-only publishing authorization guard | **PASS** |
+| **TC-19** | User Profile | Citizen registration profile cloud synchronization trigger | **PASS** |
+
+*Note: Automated tests evaluate domain logic, schema constraints, and storage contracts. Live cloud writes against Google Cloud Firestore are subject to project network availability and active security rules.*
+
+---
+
+## ⚠️ Limitations & Constraints
+
+1. **Research Prototype Status**: The application is an academic software prototype and has not undergone government security accreditation or high-volume municipal stress testing.
+2. **Authentication Architecture**: In the prototype, administrative checks utilize a combination of email verification and `/admins/` document lookups. A production municipal deployment requires migration to enterprise Firebase Auth Custom Claims.
+3. **Simulated Telemetry**: Sensor readings (water pressure, reservoir capacities) and vehicle tracking operate on client-side mathematical simulation routines rather than physical IoT edge hardware.
+4. **Offline Conflict Handling**: Multi-device offline synchronization currently uses an append-latest strategy rather than a distributed conflict-free replicated data type (CRDT).
+5. **Telecom & Payment Mocking**: SMS delivery notices and UPI payment flows are simulated in the UI and do not initiate real telecom transmissions or financial transactions.
+
+---
+
+## 🔮 Future Enhancements
+
+- **Physical SCADA Integration**: Interface with real-time MQTT message brokers linked to LoRaWAN water-pressure and ultrasonic reservoir sensors.
 - **Telecom DLT Gateway Integration**: Connect SMS notifications to an approved Indian Distributed Ledger Technology (DLT) telecom provider for real-world resident dispatch notices.
-- **Automated Offline Sync Queue**: Implement an IndexedDB-backed service worker queue using exponential backoff to retry failed writes when network connectivity returns.
-- **GIS Pipe Network Mapping**: Integrate GeoJSON shapefiles of the municipal underground water pipeline grid for spatial leak hazard visualization.
+- **Automated Offline Sync Queue**: Implement an IndexedDB-backed service worker queue with exponential backoff to retry failed writes when network connectivity returns.
+- **GIS Pipeline Grid Mapping**: Integrate municipal GeoJSON shapefiles representing the underground water distribution network for spatial burst/leak hazard visualization.
+- **Automated Security Rule Emulation**: Add `@firebase/rules-unit-testing` suites executed in GitHub Actions for continuous security rules regression testing.
 
 ---
 
-## 📄 11. Academic Attribution & License
+## 🤝 Contributing
 
-- **Project Title**: JalSeva: Design and Implementation of a Web-Based Water Supply Management and Citizen Grievance Prototype
-- **Author / Developer**: Adarsh Yadav (`adarshshrawan5@gmail.com`)
-- **License**: [Apache License 2.0](LICENSE)
-- **Notice**: This repository is maintained solely for software engineering research and educational presentation.
+Contributions, feedback, and academic critique are welcome.
+
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/improved-validation`).
+3. Ensure all tests and lint checks pass (`npm test && npm run lint`).
+4. Commit your changes with descriptive messages.
+5. Submit a pull request detailing the modifications.
+
+*Please ensure no personal citizen data, production database credentials, or secret keys are committed.*
+
+---
+
+## 📄 License
+
+This project is open-source software licensed under the [Apache License 2.0](LICENSE).
+
+---
+
+## 👨‍💻 Author & Acknowledgments
+
+**Adarsh Yadav**  
+Student Developer | Information Technology  
+GitHub: [@adarshshrawan5](https://github.com/adarshshrawan5)  
+Email: `adarshshrawan5@gmail.com`
+
+---
+
+*JalSeva is an academic software engineering prototype developed to explore digital approaches to water-supply information management, citizen grievance workflows, and cloud persistence.*
